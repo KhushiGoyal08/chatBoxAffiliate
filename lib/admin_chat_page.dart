@@ -75,6 +75,7 @@ class _AdminChatPageState extends State<AdminChatPage> {
       _isUploading = true;
     });
     // If an image is selected, upload it and send as an image message
+    //comment
     try {
       final imageUrl = await ChatService().uploadImage(
         currentUserId!,

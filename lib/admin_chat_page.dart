@@ -1,0 +1,475 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:omd/msgs_requests.dart';
+import 'package:omd/previewImage.dart';
+import 'package:omd/services/api_service.dart';
+import 'package:omd/services/chat_service.dart';
+import 'package:omd/services/notification_service.dart';
+import 'package:omd/widgets/chat_message.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
+
+import 'chat_field.dart';
+
+class AdminChatPage extends StatefulWidget {
+  String chatRoomId;
+  String receiverId;
+
+  AdminChatPage({Key? key, required this.chatRoomId, required this.receiverId})
+      : super(key: key);
+  @override
+  State<AdminChatPage> createState() => _AdminChatPageState();
+}
+
+class _AdminChatPageState extends State<AdminChatPage> {
+  final GlobalKey<_AdminChatPageState> chatPageKey =
+      GlobalKey<_AdminChatPageState>();
+  TextEditingController chatMessage = TextEditingController();
+
+  final ScrollController _scrollController = ScrollController();
+
+  final ImagePicker _imagePicker = ImagePicker();
+  XFile? _selectedImage;
+  bool _isFirstMessageSent = false;
+
+  bool _isUploading = false;
+
+  bool _requestContainerShown = false;
+  String? firstName;
+  String? lastName;
+  String? currentUserId;
+  Future<void> _fetchUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    currentUserId = prefs.getString('userId') ?? '';
+    firstName = prefs.getString('firstName') ?? '';
+    lastName = prefs.getString('lastName') ?? '';
+
+    setState(() {}); // Trigger a rebuild to update the UI with the fetched data
+  }
+
+  Future<void> _showImagePreview(String imagePath) async {
+    final shouldSendImage = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PreviewImagePage(imagePath: imagePath),
+      ),
+    );
+
+    if (shouldSendImage == true) {
+      _sendImage(imagePath); // Send the image
+    }
+  }
+
+  Future<void> _sendImage(String imagePath) async {
+    setState(() {
+      _isUploading = true;
+    });
+    // If an image is selected, upload it and send as an image message
+    try {
+      final imageUrl = await ChatService().uploadImage(
+        currentUserId!,
+        imagePath,
+        widget.chatRoomId,
+      );
+
+      await ChatService().sendAdminMessage(
+        currentUserId!,
+        widget.chatRoomId,
+        widget.receiverId,
+        "", // You may want to send an empty text for image messages
+        'image', // Set message type to 'image'
+        imageUrl: imageUrl, // Pass the imageUrl
+      );
+
+      NotificationService().sendNotification(
+          userData?['token'],
+          "${firstName} ${lastName}",
+          "${firstName} ${lastName} sent you an Image",
+          currentUserId!,
+          widget.chatRoomId);
+
+      setState(() {
+        _selectedImage = null; // Clear the selected image after sending
+      });
+    } catch (error) {
+      print("Error sending image: $error");
+      // Handle the error as needed
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
+  }
+
+  Map<String, dynamic>? userData;
+  Future<void> _fetchOtherUserData() async {
+    try {
+      final result = await ApiService().getUserById(widget.receiverId);
+
+      if (result['message'] == 'User Data fetched') {
+        setState(() {
+          userData = result['user'];
+        });
+        print("USer data fetched Successfully");
+      } else {
+        // Handle error scenario
+        print(result['message']);
+      }
+    } catch (error) {
+      // Handle error scenario
+      print('Error: $error');
+    }
+  }
+
+  String? _isChatRequestAccepted;
+  @override
+  void initState() {
+    _fetchUserData();
+    ChatService().resetUnreadCount(widget.chatRoomId, currentUserId ?? '');
+
+    final userIds = widget.chatRoomId.split('_');
+    // receiverId = userIds.firstWhere((id) => id != currentUserId);
+    // TODO: implement initState
+    ChatService()
+        .markLatestMessageAsSeen(widget.chatRoomId, currentUserId ?? '');
+    _fetchOtherUserData();
+    print("Receriver ID:......${widget.receiverId}");
+    super.initState();
+  }
+
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() async {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _fetchUserData();
+      // Initialize isFirstMessageSent based on whether there are messages
+      _isFirstMessageSent = await _checkIfFirstMessageSent();
+      _initialized = true;
+    }
+  }
+
+  Future<bool> _checkIfFirstMessageSent() async {
+    try {
+      // Check if there are any existing messages in the chat
+      QuerySnapshot<Map<String, dynamic>> messagesSnapshot =
+          await FirebaseFirestore.instance
+              .collection('chats')
+              .doc(widget.chatRoomId)
+              .collection('messages')
+              .limit(1)
+              .get();
+
+      return messagesSnapshot.docs.isNotEmpty;
+    } catch (error) {
+      print("Error checking if it's the first message: $error");
+      return false;
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final pickedImage =
+        await _imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (pickedImage != null) {
+      await _cropAndCompressImage(pickedImage.path);
+    }
+  }
+
+  Future<void> _cropAndCompressImage(String imagePath) async {
+    final croppedFile = await ImageCropper()
+        .cropImage(sourcePath: imagePath, aspectRatioPresets: [
+      CropAspectRatioPreset.square,
+      CropAspectRatioPreset.ratio3x2,
+      CropAspectRatioPreset.original,
+      CropAspectRatioPreset.ratio4x3,
+      CropAspectRatioPreset.ratio16x9,
+    ], uiSettings: [
+      AndroidUiSettings(
+        toolbarTitle: 'Crop Image',
+        toolbarColor: Color(0xff102E44),
+        toolbarWidgetColor: Colors.white,
+        initAspectRatio: CropAspectRatioPreset.original,
+        lockAspectRatio: false,
+      ),
+    ]);
+    IOSUiSettings(
+      title: 'Cropper',
+    );
+
+    if (croppedFile != null) {
+      final dir = await path_provider.getTemporaryDirectory();
+      final targetPath = '${dir.absolute.path}/temp.jpg';
+      // Compress the cropped image before sending
+      final compressedFile = await FlutterImageCompress.compressAndGetFile(
+        croppedFile.path,
+        imagePath, // Overwrite the original image
+        quality: 80,
+        minHeight: 720,
+        minWidth: 720,
+      );
+      final data = await compressedFile!.readAsBytes();
+      final newKb = data.length / 1024;
+      final newMb = newKb / 1024;
+
+      if (kDebugMode) {
+        print('compressed image size:' + newMb.toString());
+      }
+
+      // Now, you can use the compressedFile for further processing or sending
+      // For example, send the image using `_sendImage(compressedFile.path);`
+      await _sendImage(compressedFile!.path);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xff102E44),
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.pop(
+              context,
+            );
+          },
+          child: const Icon(
+            Icons.arrow_back_ios_new_outlined,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+        title: Text(
+            "${userData?['firstName'] ?? ''} ${userData?['lastName'] ?? ''}",
+            style: GoogleFonts.poppins(
+                textStyle: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    color: Colors.white))),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: ChatService().getChatMessages(widget.chatRoomId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Text("Error: ${snapshot.error}");
+                } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(
+                    child: Text(
+                      "Start the Chat...",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        fontSize: 20,
+                      ),
+                    ),
+                  );
+                } else {
+                  final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+                      snapshot.data!.docs;
+                  ChatService()
+                      .resetUnreadCount(widget.chatRoomId, currentUserId!);
+                  ChatService().markLatestMessageAsSeen(
+                    widget.chatRoomId,
+                    currentUserId!,
+                  );
+
+                  // Check if the chat request is accepted and it's the first message
+                  if (_isChatRequestAccepted == 'accepted' &&
+                      !_isFirstMessageSent) {
+                    return ListView.builder(
+                      reverse: true,
+                      controller: _scrollController,
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final doc = docs[index];
+                        final String senderId = doc['senderId'];
+                        final String message = doc['message'];
+                        final String messageType = doc['type'];
+                        final String? imageUrl = doc['imageUrl'];
+                        final String lastMessageStatus =
+                            doc['lastMessageStatus'];
+                        final Timestamp? time = doc['timestamp'] != null
+                            ? (doc['timestamp'] is Timestamp
+                                ? doc['timestamp']
+                                : (doc['timestamp'] is DateTime
+                                    ? Timestamp.fromDate(
+                                        doc['timestamp'] as DateTime)
+                                    : null))
+                            : Timestamp.now();
+
+                        return Column(
+                          children: [
+                            ChatMessage(
+                              text: message,
+                              isMe: senderId == currentUserId,
+                              lastMessageStatus: lastMessageStatus,
+                              showStatus: index == 0,
+                              messageType: messageType,
+                              imageUrl: imageUrl,
+                              time: time!,
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  } else {
+                    return ListView.builder(
+                      reverse: true,
+                      controller: _scrollController,
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final doc = docs[index];
+                        final String senderId = doc['senderId'];
+                        final String message = doc['message'];
+                        final String messageType = doc['type'];
+                        final String? imageUrl = doc['imageUrl'];
+                        final String lastMessageStatus =
+                            doc['lastMessageStatus'];
+                        final Timestamp? time = doc['timestamp'] != null
+                            ? (doc['timestamp'] is Timestamp
+                                ? doc['timestamp']
+                                : (doc['timestamp'] is DateTime
+                                    ? Timestamp.fromDate(
+                                        doc['timestamp'] as DateTime)
+                                    : null))
+                            : Timestamp.now();
+
+                        return Column(
+                          children: [
+                            ChatMessage(
+                              text: message,
+                              isMe: senderId == currentUserId,
+                              lastMessageStatus: lastMessageStatus,
+                              showStatus: index == 0,
+                              messageType: messageType,
+                              imageUrl: imageUrl,
+                              time: time!,
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                }
+              },
+            ),
+          ),
+          _buildInputField(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputField() {
+    return _isUploading
+        ? Center(
+            child: CircularProgressIndicator(),
+          )
+        : Container(
+            padding: EdgeInsets.all(8),
+            child: Row(
+              children: [
+                // IconButton(onPressed: () {}, icon: Icon(Icons.file_open)),
+                Expanded(
+                    child: ChatField(
+                  controller: chatMessage,
+                  onPressed: () {
+                    _pickImage();
+                  },
+                  hintText: "Write a Message....",
+                )),
+                _isUploading
+                    ? SizedBox(
+                        child: Center(child: CircularProgressIndicator()),
+                        height: 10.0,
+                        width: 10.0,
+                      )
+                    : IconButton(
+                        icon: Icon(
+                          Icons.send,
+                          color: Color(0xff102E44),
+                        ),
+                        onPressed: () {
+                          _sendMessage();
+                        },
+                      ),
+              ],
+            ),
+          );
+  }
+
+  Future<void> _sendMessage() async {
+    // Check if the chat request has been accepted
+
+    // If the request is accepted, allow sending the message
+    if (chatMessage.text.isNotEmpty || _selectedImage != null) {
+      final messageText = chatMessage.text.trim();
+
+      // Clear the text field immediately
+      chatMessage.clear();
+
+      if (_selectedImage != null) {
+        setState(() {
+          _isUploading = true; // Set to true before starting the upload
+        });
+        // If an image is selected, upload it and send as an image message
+        try {
+          final imageUrl = await ChatService().uploadImage(
+            currentUserId!,
+            _selectedImage!.path,
+            widget.chatRoomId,
+          );
+
+          await ChatService().sendAdminMessage(
+            currentUserId!,
+            widget.chatRoomId,
+            widget.receiverId,
+            messageText,
+            'image', // Set message type to 'image'
+            imageUrl: imageUrl, // Pass the imageUrl
+          );
+
+          setState(() {
+            _selectedImage = null; // Clear the selected image after sending
+          });
+        } finally {
+          setState(() {
+            _isUploading = false;
+          });
+        }
+      } else {
+        // If no image is selected, send as a text message
+        await ChatService().sendAdminMessage(
+          currentUserId!,
+          widget.chatRoomId,
+          widget.receiverId,
+          messageText,
+          'text', // Set message type to 'text'
+        );
+      }
+      NotificationService().sendNotificationAdminToUser(
+          userData?['token'],
+          "${firstName} ${lastName}",
+          messageText,
+          currentUserId!,
+          widget.chatRoomId);
+      print(userData?['email']);
+    }
+  }
+}

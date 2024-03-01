@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "603565223533",
+    "project_id": "omd-app-76987",
+    "storage_bucket": "omd-app-76987.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:603565223533:android:b92dd388d428007fb21964",
+        "android_client_info": {
+          "package_name": "com.project.omd"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "603565223533-1siqhc6v8gd13jtud4c45hta26uu0hk7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.project.omd",
+            "certificate_hash": "7af05876a4b7326de10b1af7afcb9a622bef6740"
+          }
+        },
+        {
+          "client_id": "603565223533-212idp81m2m3fkq6f9l2v5tp2ovome8q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.project.omd",
+            "certificate_hash": "842318c0008384609c86e21d3918b09b9fb36697"
+          }
+        },
+        {
+          "client_id": "603565223533-ccagoliupnjr8bbo0u24vmtuordumkd6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.project.omd",
+            "certificate_hash": "5cbff50f744e3295e9f52065dbc652ae0578aebe"
+          }
+        },
+        {
+          "client_id": "603565223533-96qo6jgmdm0nk6o792t70c8buqcdud08.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHTgXixJ77aIZtBc0x_lUAEFnm5w_QD8o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "603565223533-96qo6jgmdm0nk6o792t70c8buqcdud08.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

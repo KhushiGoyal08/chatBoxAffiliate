@@ -12,6 +12,7 @@ import 'package:omd/sign_ups.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'controller/termsAndConditionController.dart';
 import 'login.dart';
 
 class Splash extends StatefulWidget {
@@ -26,7 +27,7 @@ class _SplashState extends State<Splash> {
   String? currentUserId;
   bool? isContactVerified;
   String? jwttoken;
-
+  // TermAndConditionController termcontroller =Get.put(TermAndConditionController());
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
   Future<void> getSessionToken() async {
@@ -55,9 +56,10 @@ class _SplashState extends State<Splash> {
         Get.offAll(() => Home_Screen());
         print("Result..... ${result}");
       } else {
+        // termcontroller.showTermsConditionsDialog();
         // User is not verified, navigate to SignUpScreen
-        // Get.offAll(() => Sign_Up());
-        Get.offAll(() => PermissionGuestUser());
+        Get.offAll(()  =>  Sign_Up());
+        // Get.offAll(() => PermissionGuestUser());
         print("Result..... ${result}");
       }
     });

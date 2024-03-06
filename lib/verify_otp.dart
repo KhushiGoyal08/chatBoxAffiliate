@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:omd/home.dart';
 import 'package:omd/services/api_service.dart';
 import 'package:omd/sign_ups.dart';
@@ -12,11 +13,16 @@ import 'package:omd/widgets/utils.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'controller/termsAndConditionController.dart';
+
 class Verify_OTP extends StatefulWidget {
   final String phoneNumber;
   final String countryFlag;
+  final bool verify;
   const Verify_OTP(
-      {Key? key, required this.phoneNumber, required this.countryFlag})
+      {Key? key, required this.phoneNumber, required this.countryFlag,
+        required this.verify
+      })
       : super(key: key);
 
   @override
@@ -27,7 +33,7 @@ class _Verify_OTPState extends State<Verify_OTP> with TickerProviderStateMixin {
   FirebaseAuth auth = FirebaseAuth.instance;
   bool isLoading = false;
   String? token;
-
+  TermAndConditionController termcontroller =Get.put(TermAndConditionController());
   Future<void> _saveToken(String token) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('token', '');
@@ -277,20 +283,37 @@ class _Verify_OTPState extends State<Verify_OTP> with TickerProviderStateMixin {
                                     '................${userData['jwttoken']}');
                                 _saveUserDataInSharedPreferences(userData);
                                 print("token: ${token}");
+
                                 final tokenResult = await ApiService()
                                     .updateUserToken(userId, token!);
+
+
                                 if (tokenResult['success']) {
+
                                   _saveToken(token!);
                                   print(
                                       "Token Result:/// ${tokenResult['existingUser']}");
-                                  Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => Home_Screen(
-                                                userData: result['data']
-                                                    ['user'],
-                                              )),
-                                      (route) => false);
+                                  if(widget.verify){
+                                    Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => Home_Screen(
+                                              userData: result['data']
+                                              ['user'],
+                                            )),
+                                            (route) => false);
+
+                                  }else{
+                                    Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => Home_Screen(
+                                              userData: result['data']
+                                              ['user'],
+                                            )),
+                                            (route) => false);
+                                    termcontroller.showTermsConditionsDialog(context);
+                                  }
                                 } else {
                                   Utils().toastMessage(
                                       context, "Error Occurred", Colors.red);

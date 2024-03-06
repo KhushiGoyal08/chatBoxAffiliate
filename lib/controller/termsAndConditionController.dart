@@ -10,7 +10,7 @@ import '../sign_ups.dart';
 
 class TermAndConditionController extends GetxController {
   final NotificationService notificationService = NotificationService();
-  void showTermsConditionsDialog() {
+  void showTermsConditionsDialog(BuildContext context) {
     Get.dialog(
       Dialog(
         backgroundColor: Colors.white,
@@ -70,15 +70,24 @@ class TermAndConditionController extends GetxController {
                   ),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xff102E44),
+
+                  ),
                   onPressed: () {
-                    _handleButtonClick(Sign_Up());
+                    _handleButtonClick(Home_Screen());
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.check_circle, color: Colors.white),
                       SizedBox(width: 8),
-                      Text("Yes, I agree"),
+                      Text("Yes, I agree",
+                        style: TextStyle(
+                          color: Color.fromRGBO(255, 255, 255, 1),
+                          fontFamily: 'Montserrat',
+                          fontSize: 17,
+                        ),),
                     ],
                   ),
                 ),

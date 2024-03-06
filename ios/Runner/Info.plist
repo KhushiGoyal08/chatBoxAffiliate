@@ -70,7 +70,11 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Give permission to affiliate chat in order to save photos in the device</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Give permission to affiliate chat in order to access photos in the device</string>
+	<string>Give permission to affiliate chat in order to access photos in the device for uploading profile picture or for uploading it for post</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Give permission to affiliate chat in order to access camera for taking photos to upload them on profile or in post</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Give permission to affiliate chat in order to access microphone for recording audio</string>
 	<key>REVERSED_CLIENT_ID</key>
 	<string>com.googleusercontent.apps.603565223533-m8km8q7nk7vu0pnoi2b7bktevsq469u9</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

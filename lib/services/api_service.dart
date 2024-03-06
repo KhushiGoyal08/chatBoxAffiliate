@@ -110,6 +110,9 @@ class ApiService {
     }
   }
 
+
+  // verify user
+
   Future<Map<String, dynamic>> getUserById(String userId) async {
     final String apiUrl = '$BASE_URL/api/users/$userId/get_user';
 

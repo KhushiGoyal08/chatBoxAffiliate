@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl_phone_field/countries.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:omd/controller/deleteCOntroller.dart';
 import 'package:omd/services/api_service.dart';
 import 'package:omd/services/auth_service.dart';
 import 'package:omd/verify_otp.dart';
@@ -20,7 +22,7 @@ class Sign_Up extends StatefulWidget {
 class _Sign_UpState extends State<Sign_Up> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _phoneNumberController = TextEditingController();
-
+  final DeleteController IsFirstTimeUser =Get.put(DeleteController());
   Future<void> _saveFlag(String flag) async {
     if (flag.isNotEmpty) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -179,9 +181,15 @@ class _Sign_UpState extends State<Sign_Up> {
                         try {
                           final apiResult = await ApiService()
                               .registerAndVerifyContact(_countryCode!);
+
                           await _saveFlag(_countryFlagIcon!);
                           print("API RESULT............${apiResult}");
                           if (apiResult['success']) {
+                         final res= await    IsFirstTimeUser.getUserByPhoneNumber(_countryCode!);
+                       bool  isFirstTime=res.user.isverified;
+                              // final res=ApiService().getUserById();
+                            // final isVerify=apiResult['data']['user']['isverified'];
+                            // print("\n"+isVerify);
                             auth.verifyPhoneNumber(
                                 phoneNumber: _countryCode,
                                 verificationCompleted:
@@ -191,6 +199,7 @@ class _Sign_UpState extends State<Sign_Up> {
                                     isLoading = false;
                                   });
                                 },
+
                                 verificationFailed: (e) {
                                   setState(() {
                                     isLoading = false;
@@ -200,7 +209,7 @@ class _Sign_UpState extends State<Sign_Up> {
                                       context, e.toString(), Colors.red);
                                 },
                                 codeSent:
-                                    (String verificationId, int? resendToken) {
+                                    (String verificationId, int? resendToken) async{
                                   Sign_Up.verify = verificationId;
 
                                   print('.......${otpCode}');
@@ -208,6 +217,7 @@ class _Sign_UpState extends State<Sign_Up> {
                                       context,
                                       MaterialPageRoute(
                                           builder: ((context) => Verify_OTP(
+                                            verify: isFirstTime,
                                                 phoneNumber: _countryCode!,
                                                 countryFlag: _countryFlagIcon!,
                                               ))));

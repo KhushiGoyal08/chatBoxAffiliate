@@ -1,3 +1,4 @@
+// import 'package:flutter/cupertino.dart';
 // import 'package:flutter/gestures.dart';
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
@@ -17,13 +18,22 @@
 //       backgroundColor: Colors.white,
 //       body: Padding(
 //         padding: const EdgeInsets.all(16),
-//         child: Column(
+//         child: ListView(
 //           children: [
 //             const Image(
 //               image: AssetImage('assets/logo-black.png'),
-//               fit: BoxFit.cover,
+//               height: 300,
+//               width: 300,
 //             ),
-//             Spacer(),
+//
+//   OrientationBuilder(
+//    builder: (context,orientation){
+//      return  SizedBox(
+//        height: (orientation ==Orientation.portrait)?MediaQuery.of(context).size.height*0.3 : 10,
+//      );
+//    },
+//   ),
+//
 //             Button(
 //               icon: Icon(Icons.face, color: Color.fromRGBO(255, 255, 255, 1)),
 //               onPressed: () => Get.offAll(() => Home_Screen()),
@@ -31,7 +41,7 @@
 //             ),
 //             Padding(
 //               padding: EdgeInsets.only(
-//                 bottom: MediaQuery.of(context).size.height * 0.1,
+//                 bottom: MediaQuery.of(context).size.height*0.05,
 //                 top: 20,
 //               ),
 //               child: Button(
@@ -39,7 +49,7 @@
 //                 onPressed: (){
 //
 //
-//                   // _handleButtonClick(Sign_Up());
+//                   Get.offAll(()=>Sign_Up());
 //                 },
 //                 text: 'Sign Up',
 //               ),
@@ -49,8 +59,4 @@
 //       ),
 //     );
 //   }
-//
-//
-//
 // }
-//

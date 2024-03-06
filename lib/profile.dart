@@ -144,7 +144,7 @@ class _ProfileState extends State<Profile> {
                                       String userId = await deleteController.getUserIdFromSharedPreferences();
                                       deleteController.deleteUser(userId);
                                       // Get.to(() => PermissionGuestUser());
-                                      Get.to(() => Sign_Up());
+                                      Get.offAll(() => Sign_Up());
                                   },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Color(0xff102E44),

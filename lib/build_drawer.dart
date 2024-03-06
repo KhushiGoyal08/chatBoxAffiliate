@@ -49,17 +49,17 @@ Widget buildDrawer(BuildContext context) {
                     icon: Icons.person,
                     text: 'PROFILE',
                     onTap: () async{
-                      if (firstName!.isEmpty ||
-                          lastName!.isEmpty ||
-                          email!.isEmpty) {
-                        Utils().toastMessage(context,
-                            "Please fill your name and email", Colors.red);
-                        Get.to(() => Edit_Pro());
-                      }
-                      else{
+                      // if (firstName!.isEmpty ||
+                      //     lastName!.isEmpty ||
+                      //     email!.isEmpty) {
+                      //   Utils().toastMessage(context,
+                      //       "Please fill your name and email", Colors.red);
+                      //   Get.to(() => Edit_Pro());
+                      // }
+
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) => Profile()));
-                      }
+
                     }),
                 ListTileWithNavigation(
                     icon: Icons.chat,

@@ -510,11 +510,7 @@ class _PostsState extends State<Posts> {
                                                                         ElevatedButton(
                                                                             onPressed:
                                                                                 () {
-                                                                              if (firstName!.isEmpty || lastName!.isEmpty || email!.isEmpty) {
-                                                                                Utils().toastMessage(context, "Please fill your name and email", Colors.red);
 
-                                                                                Navigator.push(context, MaterialPageRoute(builder: (context) => Edit_Pro()));
-                                                                              } else {
                                                                                 if (userId! == post.userId) {
                                                                                   Utils().toastMessage(context, "You cannot Report Yourself", Colors.red);
                                                                                 } else {
@@ -522,7 +518,7 @@ class _PostsState extends State<Posts> {
                                                                                   print(reportData.reason);
                                                                                   Navigator.pop(context);
                                                                                 }
-                                                                              }
+
                                                                             },
                                                                             style:
                                                                                 ElevatedButton.styleFrom(
@@ -555,9 +551,9 @@ class _PostsState extends State<Posts> {
                                                           menuItems = [
                                                         const PopupMenuItem<
                                                             String>(
-                                                          value: 'Message',
+                                                          value: 'Chat',
                                                           child:
-                                                              Text('Message'),
+                                                              Text('Chat'),
                                                         ),
                                                         const PopupMenuItem<
                                                             String>(

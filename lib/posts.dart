@@ -389,7 +389,7 @@ class _PostsState extends State<Posts> {
                                                   trailing:
                                                       PopupMenuButton<String>(
                                                     onSelected: (choice) async {
-                                                      if (choice == 'Message'){
+                                                      if (choice == 'Chat'){
                                                         if (firstName!
                                                                 .isEmpty ||
                                                             lastName!.isEmpty ||
@@ -514,9 +514,17 @@ class _PostsState extends State<Posts> {
                                                                                 if (userId! == post.userId) {
                                                                                   Utils().toastMessage(context, "You cannot Report Yourself", Colors.red);
                                                                                 } else {
-                                                                                  reportController.reportUser(userId!, post.userId, reportData.reason);
-                                                                                  print(reportData.reason);
-                                                                                  Navigator.pop(context);
+                                                                               if(reportData.reason!='' && reportData.reason.isNotEmpty){
+                                                                                 reportController.reportUser(userId!, post.userId, reportData.reason);
+                                                                                 print(reportData.reason);
+                                                                                 Navigator.pop(context);
+                                                                               }
+                                                                               else{
+                                                                                 Utils().toastMessage(
+                                                                                     context,
+                                                                                     "Please Report Something",
+                                                                                     Colors.red);
+                                                                               }
                                                                                 }
 
                                                                             },

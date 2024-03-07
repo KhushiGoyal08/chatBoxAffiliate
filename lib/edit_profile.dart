@@ -342,6 +342,7 @@ class _Edit_ProState extends State<Edit_Pro> {
                         height: 20,
                       ),
                       MyTextField(
+
                           hintLabel: Text("Email"),
                           controller: email,
                           hintText: "Email"),

@@ -5,7 +5,8 @@ class MyTextField extends StatelessWidget {
   final String hintText;
   final int? maxLines;
   final bool? readOnly;
-
+  final void Function()? onPressed;
+  final String text;
   final Text hintLabel;
   const MyTextField(
       {super.key,
@@ -13,7 +14,10 @@ class MyTextField extends StatelessWidget {
       required this.hintText,
       this.maxLines,
       required this.hintLabel,
-      this.readOnly});
+      this.readOnly,
+        this.text='',
+        this.onPressed
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +28,18 @@ class MyTextField extends StatelessWidget {
         maxLines: maxLines ?? null,
         controller: controller,
         decoration: InputDecoration(
+
+    suffix:  (text!='')? OutlinedButton(
+        child: Text(text,
+        style: TextStyle(
+        color: Color.fromRGBO(255, 255, 255, 1),
+        fontFamily: 'Montserrat',
+
+        ),),
+        onPressed: onPressed
+
+        ):SizedBox.shrink(),
+
           label: hintLabel,
           focusedBorder: const OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black12),

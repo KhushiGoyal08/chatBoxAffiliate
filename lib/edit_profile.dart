@@ -1,21 +1,31 @@
 import 'dart:io';
 
+import 'package:email_otp/email_otp.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:omd/home.dart';
 import 'package:omd/profile.dart';
 import 'package:http/http.dart' as http;
 import 'package:omd/services/api_service.dart';
+import 'package:omd/verify_otp.dart';
 import 'package:omd/widgets/my_textfield.dart';
 import 'package:omd/widgets/utils.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'controller/firstTimeUser.dart';
+
 class Edit_Pro extends StatefulWidget {
+  static String verify = '';
   Edit_Pro({
     Key? key,
   }) : super(key: key);
@@ -30,7 +40,6 @@ class _Edit_ProState extends State<Edit_Pro> {
   TextEditingController lastName = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController mobileNumber = TextEditingController();
-
   TextEditingController linkedin = TextEditingController();
   TextEditingController skype = TextEditingController();
   TextEditingController telegram = TextEditingController();
@@ -39,16 +48,18 @@ class _Edit_ProState extends State<Edit_Pro> {
   TextEditingController company = TextEditingController();
   TextEditingController designation = TextEditingController();
   TextEditingController aboutMe = TextEditingController();
-
+  String? otp;
+  String? emailOtp;
   String? profileImage;
-
+  // VerifyUser verifyEmail=Get.put(VerifyUser());
   String? userId;
   File? _image;
+  String? otpCode;
   XFile? _selectImage;
   final picker = ImagePicker();
   bool isLoading = false;
   bool _imageSelected = false;
-
+  EmailOTP myauth = EmailOTP();
   Future imagePickerFromGallery() async {
     _selectImage = (await picker.pickImage(source: ImageSource.gallery))!;
 
@@ -110,6 +121,126 @@ class _Edit_ProState extends State<Edit_Pro> {
           _imageSelected = true;
         });
       }
+    }
+  }
+
+  Future<void> verifyPhoneNumber(String newPhoneNumber,BuildContext context) async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        PhoneVerificationCompleted verificationCompleted =
+            (PhoneAuthCredential credential) async {
+
+          print('Phone number updated successfully');
+        };
+
+        PhoneVerificationFailed verificationFailed =
+            (FirebaseAuthException authException) {
+          print('Phone verification failed: ${authException.message}');
+        };
+
+        PhoneCodeSent codeSent =
+            (String verificationId, int? resendToken) async {
+          Edit_Pro.verify = verificationId;
+
+          print('.......${otpCode}');
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  content: TextFormField(
+                    onChanged: (val) {
+                      otp = val;
+                    },
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(6), // Limit to 6 digits
+                    ],
+                    decoration: InputDecoration(
+                      label: Text("Enter OTP"),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black12),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(46),
+                          topRight: Radius.circular(46),
+                          bottomLeft: Radius.circular(46),
+                          bottomRight: Radius.circular(46),
+                        ),
+                      ),
+                      enabledBorder: const OutlineInputBorder(
+                        // borderSide: BorderSide(color: Colors.blue, width: 0.4),
+                        borderSide: BorderSide(color: Colors.black12),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(46),
+                          topRight: Radius.circular(46),
+                          bottomLeft: Radius.circular(46),
+                          bottomRight: Radius.circular(46),
+                        ),
+                      ),
+                      contentPadding: EdgeInsets.all(15),
+                      hintText: "Enter OTP",
+                      hintStyle: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          fontStyle: FontStyle.normal,
+                          color: Colors.black,
+                          letterSpacing: -0.33,
+                          fontFamily: 'Montserrat'),
+                    ),
+                  ),
+                  actions: [
+                    ElevatedButton(
+                        onPressed: () async {
+                          try{
+                            PhoneAuthCredential credential =
+                            PhoneAuthProvider.credential(
+                              verificationId: Edit_Pro
+                                  .verify, // Verification ID received during phone number change
+                              smsCode:
+                              otp!, // Confirmation code sent to the new phone number
+                            );
+                            await user.updatePhoneNumber(credential);
+                            print("USer Phone NO Update Successfully");
+                            SharedPreferences prefs = await SharedPreferences.getInstance();
+                            prefs.setString('mobileNumber', newPhoneNumber);
+                            print(prefs.getString('mobileNumber'));
+                          await   ApiService().verifyUser(newPhoneNumber);
+                            await ApiService().registerAndUpdateProfile(userId: userId!, profilePicture: File(profileImage!), firstName: firstName.text, lastName: lastName.text, email: email.text, mobileNumber: newPhoneNumber, linkedIn: linkedin.text, skype: skype.text, telegram: telegram.text, instagram: instagram.text, facebook: facebook.text, company: company.text, designation:designation.text, aboutMe: aboutMe.text, token: token!, flag: flag);
+                          }
+                          catch(e){
+                            Utils().toastMessage(context, '$e', Colors.redAccent);
+                          }
+
+                          Navigator.of(context).pop();
+                        },
+                        child: Text("Verify OTP"))
+                  ],
+                );
+              });
+
+          setState(() async {
+
+            isLoading = false;
+          });
+        };
+
+        await FirebaseAuth.instance.verifyPhoneNumber(
+            phoneNumber: newPhoneNumber,
+            verificationCompleted: verificationCompleted,
+            verificationFailed: verificationFailed,
+            codeSent: codeSent,
+            codeAutoRetrievalTimeout: (e) {
+              Utils().toastMessage(context, "Error Occurred", Colors.red);
+              setState(() {
+                isLoading = false;
+              });
+            });
+      } else {
+        print('User not signed in');
+      }
+    } catch (e) {
+      print('Error verifying phone number: $e');
     }
   }
 
@@ -239,6 +370,8 @@ class _Edit_ProState extends State<Edit_Pro> {
     super.initState();
   }
 
+  String? _countryCode;
+  String? _countryFlagIcon;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -342,18 +475,174 @@ class _Edit_ProState extends State<Edit_Pro> {
                         height: 20,
                       ),
                       MyTextField(
-
+                        onPressed: () async{
+                          myauth.setConfig(
+                              appEmail: "goyalkhushi083@gmail.com",
+                              appName: "Email OTP",
+                              userEmail: email.text,
+                              otpLength: 6,
+                              otpType: OTPType.digitsOnly
+                          );
+                          if (await myauth.sendOTP() == true) {
+                             showDialog(context: context, builder: (BuildContext context){
+                               return AlertDialog(
+                                 content: TextFormField(
+                                   onChanged: (val) {
+                                     emailOtp = val;
+                                   },
+                                   keyboardType: TextInputType.number,
+                                   inputFormatters: [
+                                     LengthLimitingTextInputFormatter(6), // Limit to 6 digits
+                                   ],
+                                   decoration: InputDecoration(
+                                     label: Text("Enter OTP"),
+                                     focusedBorder: const OutlineInputBorder(
+                                       borderSide: BorderSide(color: Colors.black12),
+                                       borderRadius: BorderRadius.only(
+                                         topLeft: Radius.circular(46),
+                                         topRight: Radius.circular(46),
+                                         bottomLeft: Radius.circular(46),
+                                         bottomRight: Radius.circular(46),
+                                       ),
+                                     ),
+                                     enabledBorder: const OutlineInputBorder(
+                                       // borderSide: BorderSide(color: Colors.blue, width: 0.4),
+                                       borderSide: BorderSide(color: Colors.black12),
+                                       borderRadius: BorderRadius.only(
+                                         topLeft: Radius.circular(46),
+                                         topRight: Radius.circular(46),
+                                         bottomLeft: Radius.circular(46),
+                                         bottomRight: Radius.circular(46),
+                                       ),
+                                     ),
+                                     contentPadding: EdgeInsets.all(15),
+                                     hintText: "Enter Email OTP",
+                                     hintStyle: TextStyle(
+                                         fontSize: 14,
+                                         fontWeight: FontWeight.w400,
+                                         fontStyle: FontStyle.normal,
+                                         color: Colors.black,
+                                         letterSpacing: -0.33,
+                                         fontFamily: 'Montserrat'),
+                                   ),
+                                 ),
+                                 actions: [
+                                   ElevatedButton(
+                                       onPressed: () async {
+                                         if (await myauth.verifyOTP(otp: emailOtp) == true) {
+                                           ScaffoldMessenger.of(context)
+                                               .showSnackBar(const SnackBar(
+                                             content: Text("OTP is verified"),
+                                           ));
+                                         } else {
+                                           ScaffoldMessenger.of(context)
+                                               .showSnackBar(const SnackBar(
+                                             content: Text("Invalid OTP"),
+                                           ));
+                                         }
+                                       },
+                                       child: Text("Verify OTP"))
+                                 ],
+                               );
+                             });
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text("OTP has been sent"),
+                            ));
+                          } else {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text("Oops, OTP send failed"),
+                            ));
+                          }
+                        },
                           hintLabel: Text("Email"),
                           controller: email,
                           hintText: "Email"),
                       const SizedBox(
                         height: 20,
                       ),
-                      MyTextField(
-                          readOnly: true,
-                          hintLabel: Text("Mobile Number"),
-                          controller: mobileNumber,
-                          hintText: "Mobile Number"),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10, right: 10),
+                        child: IntlPhoneField(
+                          initialCountryCode: 'IN',
+                          style: TextStyle(fontSize: 17),
+                          dropdownIcon: Icon(
+                            Icons.arrow_drop_down,
+                            color: Color(0xff102E44),
+                          ),
+                          dropdownTextStyle: TextStyle(fontSize: 15),
+                          decoration: InputDecoration(
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black12),
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(46),
+                                  topRight: Radius.circular(46),
+                                  bottomLeft: Radius.circular(46),
+                                  bottomRight: Radius.circular(46),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                // borderSide: BorderSide(color: Colors.blue, width: 0.4),
+                                borderSide: BorderSide(color: Colors.black12),
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(46),
+                                  topRight: Radius.circular(46),
+                                  bottomLeft: Radius.circular(46),
+                                  bottomRight: Radius.circular(46),
+                                ),
+                              ),
+                              labelText: 'Phone Number',
+                              labelStyle: TextStyle(color: Colors.black),
+                              border: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Color(0xff102E44)),
+                              )),
+                          // controller: mobileNumber,
+                          onChanged: (phone) {
+                            String countryCode = phone.countryISOCode;
+                            _countryFlagIcon = countryCode
+                                .toUpperCase()
+                                .replaceAllMapped(
+                                    RegExp(r'[A-Z]'),
+                                    (match) => String.fromCharCode(
+                                        match.group(0)!.codeUnitAt(0) +
+                                            127397));
+                            print(_countryFlagIcon);
+                            _countryCode = phone.completeNumber;
+                            print(_countryCode);
+                            setState(() {});
+                          },
+                          onSubmitted: (phone) async {
+                            User user = FirebaseAuth.instance.currentUser!;
+                            phone = _countryCode!;
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            var ph = prefs.getString('mobileNumber');
+                            print(ph);
+                            print(phone);
+                            if (ph != phone) {
+                              try {
+                                verifyPhoneNumber(phone,context);
+                              } catch (error) {
+                                Utils().toastMessage(context,
+                                    'Failed to call API. $error', Colors.red);
+                                setState(() {
+                                  isLoading = false;
+                                });
+                              }
+                            }
+                            else{
+                              Utils().toastMessage(context, 'Same Number', Colors.black);
+                            }
+                          },
+                        ),
+                      ),
+                      // MyTextField(
+                      //     // readOnly: true,
+                      //     hintLabel: Text("Mobile Number"),
+                      //     controller: mobileNumber,
+                      //     hintText: "Mobile Number"),
                       const SizedBox(
                         height: 20,
                       ),
@@ -421,6 +710,7 @@ class _Edit_ProState extends State<Edit_Pro> {
                           setState(() {
                             isLoading = true;
                           });
+
                           if (!RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$')
                               .hasMatch(email.text)) {
                             Utils().toastMessage(context,
@@ -436,7 +726,7 @@ class _Edit_ProState extends State<Edit_Pro> {
                                     firstName: firstName.text.trim(),
                                     lastName: lastName.text.trim(),
                                     email: email.text.trim(),
-                                    mobileNumber: mobileNumber.text,
+                                    mobileNumber: _countryCode!,
                                     linkedIn: linkedin.text.trim(),
                                     skype: skype.text.trim(),
                                     telegram: telegram.text.trim(),

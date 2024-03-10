@@ -24,20 +24,22 @@ class MyTextField extends StatelessWidget {
     return Container(
       width: 320,
       child: TextFormField(
+
         readOnly: readOnly ?? false,
         maxLines: maxLines ?? null,
         controller: controller,
         decoration: InputDecoration(
 
-    suffix:  (text!='')? OutlinedButton(
-        child: Text(text,
-        style: TextStyle(
-        color: Color.fromRGBO(255, 255, 255, 1),
+    suffix:  (text != '')? TextButton(
+
+        onPressed: onPressed,
+      child: Text(text,
+      style: TextStyle(
+        color: Colors.black54,
         fontFamily: 'Montserrat',
 
-        ),),
-        onPressed: onPressed
-
+      ),
+      ),
         ):SizedBox.shrink(),
 
           label: hintLabel,

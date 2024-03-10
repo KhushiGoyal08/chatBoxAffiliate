@@ -66,6 +66,9 @@ dependencies:
   flutter_chat_bubble: ^2.0.2
   recaptcha_enterprise_flutter: ^18.4.0
   dio: ^5.4.1
+  firebase_dynamic_links: ^5.4.8
+  email_auth: ^1.1.1
+  email_otp: ^2.1.2
 
 dev_dependencies:
   # The "flutter_lints" package below contains a set of recommended lints to

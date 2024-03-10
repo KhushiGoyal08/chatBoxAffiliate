@@ -58,8 +58,8 @@ class _SplashState extends State<Splash> {
       } else {
         // termcontroller.showTermsConditionsDialog();
         // User is not verified, navigate to SignUpScreen
-        Get.offAll(()  =>  Sign_Up());
-        // Get.offAll(() => PermissionGuestUser());
+        // Get.offAll(()  =>  Sign_Up());
+        Get.offAll(() => PermissionGuestUser());
         print("Result..... ${result}");
       }
     });

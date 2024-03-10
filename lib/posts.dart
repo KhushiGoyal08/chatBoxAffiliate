@@ -390,10 +390,7 @@ class _PostsState extends State<Posts> {
                                                       PopupMenuButton<String>(
                                                     onSelected: (choice) async {
                                                       if (choice == 'Chat'){
-                                                        if (firstName!
-                                                                .isEmpty ||
-                                                            lastName!.isEmpty ||
-                                                            email!.isEmpty) {
+                                                        if (userId!.isEmpty||userId==null) {
                                                           Utils().toastMessage(
                                                               context,
                                                               "Please fill your name and email",
@@ -455,100 +452,105 @@ class _PostsState extends State<Posts> {
                                                       } else if (choice ==
                                                           'Report') {
 
-
-                                                        showDialog(
-                                                            context: context,
-                                                            builder:
-                                                                (BuildContext
-                                                                    context) {
-                                                              return Dialog(
-                                                                backgroundColor:
-                                                                    Colors
-                                                                        .white,
-                                                                child:
-                                                                    Container(
-                                                                  height: MediaQuery.of(
-                                                                              context)
-                                                                          .size
-                                                                          .height *
-                                                                      0.35,
+                                                        if(userId!.isEmpty||userId==null){
+                                                          Utils().toastMessage(context, "Please fill your name and email", Colors.redAccent);
+                                                          Get.to(()=>Edit_Pro());
+                                                        }else{
+                                                          showDialog(
+                                                              context: context,
+                                                              builder:
+                                                                  (BuildContext
+                                                              context) {
+                                                                return Dialog(
+                                                                  backgroundColor:
+                                                                  Colors
+                                                                      .white,
                                                                   child:
-                                                                      Padding(
-                                                                    padding:
-                                                                        const EdgeInsets
-                                                                            .all(
-                                                                            20),
+                                                                  Container(
+                                                                    height: MediaQuery.of(
+                                                                        context)
+                                                                        .size
+                                                                        .height *
+                                                                        0.35,
                                                                     child:
-                                                                        Column(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .spaceEvenly,
-                                                                      children: [
-                                                                        Text(
-                                                                          "Reason To Report",
-                                                                          textAlign:
-                                                                              TextAlign.center,
-                                                                          style: TextStyle(
-                                                                              color: Colors.black,
-                                                                              fontFamily: 'Montserrat',
-                                                                              fontSize: 24,
-                                                                              fontWeight: FontWeight.bold),
-                                                                        ),
-                                                                        Icon(
-                                                                            Icons
-                                                                                .report,
-                                                                            color:
-                                                                                Colors.redAccent,
-                                                                            size: MediaQuery.of(context).size.height * 0.07),
-                                                                        TextFormField(
-                                                                          onChanged:
-                                                                              (val) {
-                                                                            reportData.reason =
-                                                                                val;
-                                                                          },
-                                                                        ),
-                                                                        ElevatedButton(
-                                                                            onPressed:
-                                                                                () {
+                                                                    Padding(
+                                                                      padding:
+                                                                      const EdgeInsets
+                                                                          .all(
+                                                                          20),
+                                                                      child:
+                                                                      Column(
+                                                                        mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .spaceEvenly,
+                                                                        children: [
+                                                                          Text(
+                                                                            "Reason To Report",
+                                                                            textAlign:
+                                                                            TextAlign.center,
+                                                                            style: TextStyle(
+                                                                                color: Colors.black,
+                                                                                fontFamily: 'Montserrat',
+                                                                                fontSize: 24,
+                                                                                fontWeight: FontWeight.bold),
+                                                                          ),
+                                                                          Icon(
+                                                                              Icons
+                                                                                  .report,
+                                                                              color:
+                                                                              Colors.redAccent,
+                                                                              size: MediaQuery.of(context).size.height * 0.07),
+                                                                          TextFormField(
+                                                                            onChanged:
+                                                                                (val) {
+                                                                              reportData.reason =
+                                                                                  val;
+                                                                            },
+                                                                          ),
+                                                                          ElevatedButton(
+                                                                              onPressed:
+                                                                                  () {
 
                                                                                 if (userId! == post.userId) {
                                                                                   Utils().toastMessage(context, "You cannot Report Yourself", Colors.red);
                                                                                 } else {
-                                                                               if(reportData.reason!='' && reportData.reason.isNotEmpty){
-                                                                                 reportController.reportUser(userId!, post.userId, reportData.reason);
-                                                                                 print(reportData.reason);
-                                                                                 Navigator.pop(context);
-                                                                               }
-                                                                               else{
-                                                                                 Utils().toastMessage(
-                                                                                     context,
-                                                                                     "Please Report Something",
-                                                                                     Colors.red);
-                                                                               }
+                                                                                  if(reportData.reason!='' && reportData.reason.isNotEmpty){
+                                                                                    reportController.reportUser(userId!, post.userId, reportData.reason);
+                                                                                    print(reportData.reason);
+                                                                                    Navigator.pop(context);
+                                                                                  }
+                                                                                  else{
+                                                                                    Utils().toastMessage(
+                                                                                        context,
+                                                                                        "Please Report Something",
+                                                                                        Colors.red);
+                                                                                  }
                                                                                 }
 
-                                                                            },
-                                                                            style:
-                                                                                ElevatedButton.styleFrom(
-                                                                              backgroundColor: Color(0xff102E44),
-                                                                            ),
-                                                                            child: Text(
-                                                                              "Report User",
-                                                                              style: TextStyle(
-                                                                                color: Color.fromRGBO(255, 255, 255, 1),
-                                                                                fontFamily: 'Montserrat',
-                                                                                fontSize: 17,
+                                                                              },
+                                                                              style:
+                                                                              ElevatedButton.styleFrom(
+                                                                                backgroundColor: Color(0xff102E44),
                                                                               ),
-                                                                            ))
-                                                                        // Button(onPressed: (){
-                                                                        //
-                                                                        // }, icon: Icon(Icons.check_circle,color: Colors.white,), text: "Yes,I agree")
-                                                                      ],
+                                                                              child: Text(
+                                                                                "Report User",
+                                                                                style: TextStyle(
+                                                                                  color: Color.fromRGBO(255, 255, 255, 1),
+                                                                                  fontFamily: 'Montserrat',
+                                                                                  fontSize: 17,
+                                                                                ),
+                                                                              ))
+                                                                          // Button(onPressed: (){
+                                                                          //
+                                                                          // }, icon: Icon(Icons.check_circle,color: Colors.white,), text: "Yes,I agree")
+                                                                        ],
+                                                                      ),
                                                                     ),
                                                                   ),
-                                                                ),
-                                                              );
-                                                            });
+                                                                );
+                                                              });
+                                                        }
+
                                                       }
                                                     },
                                                     itemBuilder:

@@ -20,7 +20,27 @@ class DeleteController extends GetxController{
     return userId;
   }
 
-
+  Future<void> clearUserData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('userId', '');
+    prefs.setString('firstName', '');
+    prefs.setString('lastName', '');
+    prefs.setString('email', '');
+    prefs.setString('mobileNumber', '');
+    prefs.setString('profileImageUrl', '');
+    prefs.setString('AboutMe', '');
+    prefs.setString('Company', '');
+    prefs.setString('Designation', '');
+    prefs.setString('Facebook', '');
+    prefs.setString('Instagram', '');
+    prefs.setString('Linkedin', '');
+    prefs.setString('Skype', '');
+    prefs.setString('Telegram', '');
+    prefs.setString('jwttoken', '');
+    prefs.setString('sessionExpiration', '');
+    print('Clearing user data from SharedPreferences');
+    prefs.clear(); // Make sure this clears the data
+  }
   Future<void> deleteUser(String userId) async {
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -30,6 +50,7 @@ class DeleteController extends GetxController{
       print(response.statusCode);
       await _firestore.collection('chats').doc(userId).delete();
       ApiService().deletePost(userId);
+      clearUserData();
       print('Chat deleted successfully');
       if (response.statusCode! == 200 ) {
         print('User deleted successfully');

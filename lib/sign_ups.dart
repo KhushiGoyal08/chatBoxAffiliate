@@ -1,12 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl_phone_field/countries.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:omd/controller/deleteCOntroller.dart';
 import 'package:omd/services/api_service.dart';
-import 'package:omd/services/auth_service.dart';
 import 'package:omd/verify_otp.dart';
 import 'package:omd/widgets/utils.dart';
 

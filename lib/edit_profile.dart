@@ -1,28 +1,21 @@
 import 'dart:io';
-
 import 'package:email_otp/email_otp.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:omd/home.dart';
-import 'package:omd/profile.dart';
 import 'package:http/http.dart' as http;
 import 'package:omd/services/api_service.dart';
-import 'package:omd/verify_otp.dart';
 import 'package:omd/widgets/my_textfield.dart';
 import 'package:omd/widgets/utils.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'controller/firstTimeUser.dart';
 
 class Edit_Pro extends StatefulWidget {
   static String verify = '';
@@ -56,6 +49,7 @@ class _Edit_ProState extends State<Edit_Pro> {
   File? _image;
   String? otpCode;
   XFile? _selectImage;
+  bool isPhoneVerified=false;
   final picker = ImagePicker();
   bool isLoading = false;
   bool _imageSelected = false;
@@ -206,9 +200,13 @@ class _Edit_ProState extends State<Edit_Pro> {
                             prefs.setString('mobileNumber', newPhoneNumber);
                             print(prefs.getString('mobileNumber'));
                           await   ApiService().verifyUser(newPhoneNumber);
-                            await ApiService().registerAndUpdateProfile(userId: userId!, profilePicture: File(profileImage!), firstName: firstName.text, lastName: lastName.text, email: email.text, mobileNumber: newPhoneNumber, linkedIn: linkedin.text, skype: skype.text, telegram: telegram.text, instagram: instagram.text, facebook: facebook.text, company: company.text, designation:designation.text, aboutMe: aboutMe.text, token: token!, flag: flag);
+                          setState(() {
+                            isPhoneVerified=true;
+                          });
+                            // await ApiService().registerAndUpdateProfile(userId: userId!, profilePicture: File(profileImage!), firstName: firstName.text, lastName: lastName.text, email: email.text, mobileNumber: newPhoneNumber, linkedIn: linkedin.text, skype: skype.text, telegram: telegram.text, instagram: instagram.text, facebook: facebook.text, company: company.text, designation:designation.text, aboutMe: aboutMe.text, token: token!, flag: flag);
                           }
                           catch(e){
+                            Utils().toastMessage(context, 'Phone Number Not Updated', Colors.redAccent);
                             Utils().toastMessage(context, '$e', Colors.redAccent);
                           }
 
@@ -474,91 +472,49 @@ class _Edit_ProState extends State<Edit_Pro> {
                       const SizedBox(
                         height: 20,
                       ),
-                      MyTextField(
-                        onPressed: () async{
-                          myauth.setConfig(
-                              appEmail: "goyalkhushi083@gmail.com",
-                              appName: "Email OTP",
-                              userEmail: email.text,
-                              otpLength: 6,
-                              otpType: OTPType.digitsOnly
-                          );
-                          if (await myauth.sendOTP() == true) {
-                             showDialog(context: context, builder: (BuildContext context){
-                               return AlertDialog(
-                                 content: TextFormField(
-                                   onChanged: (val) {
-                                     emailOtp = val;
-                                   },
-                                   keyboardType: TextInputType.number,
-                                   inputFormatters: [
-                                     LengthLimitingTextInputFormatter(6), // Limit to 6 digits
-                                   ],
-                                   decoration: InputDecoration(
-                                     label: Text("Enter OTP"),
-                                     focusedBorder: const OutlineInputBorder(
-                                       borderSide: BorderSide(color: Colors.black12),
-                                       borderRadius: BorderRadius.only(
-                                         topLeft: Radius.circular(46),
-                                         topRight: Radius.circular(46),
-                                         bottomLeft: Radius.circular(46),
-                                         bottomRight: Radius.circular(46),
-                                       ),
-                                     ),
-                                     enabledBorder: const OutlineInputBorder(
-                                       // borderSide: BorderSide(color: Colors.blue, width: 0.4),
-                                       borderSide: BorderSide(color: Colors.black12),
-                                       borderRadius: BorderRadius.only(
-                                         topLeft: Radius.circular(46),
-                                         topRight: Radius.circular(46),
-                                         bottomLeft: Radius.circular(46),
-                                         bottomRight: Radius.circular(46),
-                                       ),
-                                     ),
-                                     contentPadding: EdgeInsets.all(15),
-                                     hintText: "Enter Email OTP",
-                                     hintStyle: TextStyle(
-                                         fontSize: 14,
-                                         fontWeight: FontWeight.w400,
-                                         fontStyle: FontStyle.normal,
-                                         color: Colors.black,
-                                         letterSpacing: -0.33,
-                                         fontFamily: 'Montserrat'),
-                                   ),
-                                 ),
-                                 actions: [
-                                   ElevatedButton(
-                                       onPressed: () async {
-                                         if (await myauth.verifyOTP(otp: emailOtp) == true) {
-                                           ScaffoldMessenger.of(context)
-                                               .showSnackBar(const SnackBar(
-                                             content: Text("OTP is verified"),
-                                           ));
-                                         } else {
-                                           ScaffoldMessenger.of(context)
-                                               .showSnackBar(const SnackBar(
-                                             content: Text("Invalid OTP"),
-                                           ));
-                                         }
-                                       },
-                                       child: Text("Verify OTP"))
-                                 ],
-                               );
-                             });
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(const SnackBar(
-                              content: Text("OTP has been sent"),
-                            ));
-                          } else {
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(const SnackBar(
-                              content: Text("Oops, OTP send failed"),
-                            ));
-                          }
-                        },
-                          hintLabel: Text("Email"),
+                      Container(
+                        width: 320,
+                        child: TextFormField(
                           controller: email,
-                          hintText: "Email"),
+                          decoration:const  InputDecoration(
+                            label: Text(' Email'),
+                            focusedBorder:  OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black12),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(46),
+                                topRight: Radius.circular(46),
+                                bottomLeft: Radius.circular(46),
+                                bottomRight: Radius.circular(46),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              // borderSide: BorderSide(color: Colors.blue, width: 0.4),
+                              borderSide: BorderSide(color: Colors.black12),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(46),
+                                topRight: Radius.circular(46),
+                                bottomLeft: Radius.circular(46),
+                                bottomRight: Radius.circular(46),
+                              ),
+                            ),
+                            contentPadding: EdgeInsets.all(15),
+                            hintText: 'Enter the Email',
+                            hintStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                fontStyle: FontStyle.normal,
+                                color: Colors.black,
+                                letterSpacing: -0.33,
+                                fontFamily: 'Montserrat'),
+                          ),
+                          validator: (v) {
+                            if (v!.isEmpty) {
+                              return "Enter the Email";
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
                       const SizedBox(
                         height: 20,
                       ),
@@ -726,7 +682,7 @@ class _Edit_ProState extends State<Edit_Pro> {
                                     firstName: firstName.text.trim(),
                                     lastName: lastName.text.trim(),
                                     email: email.text.trim(),
-                                    mobileNumber: _countryCode!,
+                                    mobileNumber:(isPhoneVerified)? _countryCode!:mobileNumber.text,
                                     linkedIn: linkedin.text.trim(),
                                     skype: skype.text.trim(),
                                     telegram: telegram.text.trim(),

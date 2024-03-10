@@ -103,7 +103,7 @@ class _ProfileState extends State<Profile> {
                 )),
             IconButton(
                 onPressed: () async{
-                  showDialog(context: context, builder: (BuildContext context){
+                  ( userId !=null)?       showDialog(context: context, builder: (BuildContext context){
                     return Dialog(
                       child: Container(
                         height: MediaQuery.of(context)
@@ -143,8 +143,8 @@ class _ProfileState extends State<Profile> {
                                   ElevatedButton(onPressed: ()async {
                                       String userId = await deleteController.getUserIdFromSharedPreferences();
                                       deleteController.deleteUser(userId);
-                                      // Get.to(() => PermissionGuestUser());
-                                      Get.offAll(() => Sign_Up());
+                                      Get.to(() => PermissionGuestUser());
+                                      // Get.offAll(() => Sign_Up());
                                   },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Color(0xff102E44),
@@ -164,10 +164,10 @@ class _ProfileState extends State<Profile> {
                         ),
                       ),
                     );
-                  });
-                //   String userId = await getUserIdFromSharedPreferences();
-                //   deleteController.deleteUser(userId);
-                //   Get.to(() => PermissionGuestUser());
+                  }):Utils().toastMessage(context, "Please Sign Up", Colors.redAccent);
+                  // String userId = await getUserIdFromSharedPreferences();
+                  // deleteController.deleteUser(userId);
+                  // Get.to(() => PermissionGuestUser());
                 },
                 icon: Icon(
                   Icons.delete,
@@ -196,7 +196,7 @@ class _ProfileState extends State<Profile> {
                   child: Text('Error: ${snapshot.error}'),
                 );
               } else {
-                return SingleChildScrollView(
+                return  SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

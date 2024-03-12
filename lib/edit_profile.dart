@@ -1,15 +1,18 @@
 import 'dart:io';
 import 'package:email_otp/email_otp.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:omd/home.dart';
 import 'package:http/http.dart' as http;
+import 'package:omd/pages/mobile_no_screen.dart';
 import 'package:omd/services/api_service.dart';
 import 'package:omd/widgets/my_textfield.dart';
 import 'package:omd/widgets/utils.dart';
@@ -118,129 +121,7 @@ class _Edit_ProState extends State<Edit_Pro> {
     }
   }
 
-  Future<void> verifyPhoneNumber(String newPhoneNumber,BuildContext context) async {
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
 
-      if (user != null) {
-        PhoneVerificationCompleted verificationCompleted =
-            (PhoneAuthCredential credential) async {
-
-          print('Phone number updated successfully');
-        };
-
-        PhoneVerificationFailed verificationFailed =
-            (FirebaseAuthException authException) {
-          print('Phone verification failed: ${authException.message}');
-        };
-
-        PhoneCodeSent codeSent =
-            (String verificationId, int? resendToken) async {
-          Edit_Pro.verify = verificationId;
-
-          print('.......${otpCode}');
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  content: TextFormField(
-                    onChanged: (val) {
-                      otp = val;
-                    },
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(6), // Limit to 6 digits
-                    ],
-                    decoration: InputDecoration(
-                      label: Text("Enter OTP"),
-                      focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black12),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(46),
-                          topRight: Radius.circular(46),
-                          bottomLeft: Radius.circular(46),
-                          bottomRight: Radius.circular(46),
-                        ),
-                      ),
-                      enabledBorder: const OutlineInputBorder(
-                        // borderSide: BorderSide(color: Colors.blue, width: 0.4),
-                        borderSide: BorderSide(color: Colors.black12),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(46),
-                          topRight: Radius.circular(46),
-                          bottomLeft: Radius.circular(46),
-                          bottomRight: Radius.circular(46),
-                        ),
-                      ),
-                      contentPadding: EdgeInsets.all(15),
-                      hintText: "Enter OTP",
-                      hintStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.normal,
-                          color: Colors.black,
-                          letterSpacing: -0.33,
-                          fontFamily: 'Montserrat'),
-                    ),
-                  ),
-                  actions: [
-                    ElevatedButton(
-                        onPressed: () async {
-                          try{
-                            PhoneAuthCredential credential =
-                            PhoneAuthProvider.credential(
-                              verificationId: Edit_Pro
-                                  .verify, // Verification ID received during phone number change
-                              smsCode:
-                              otp!, // Confirmation code sent to the new phone number
-                            );
-                            await user.updatePhoneNumber(credential);
-                            print("USer Phone NO Update Successfully");
-                            SharedPreferences prefs = await SharedPreferences.getInstance();
-                            prefs.setString('mobileNumber', newPhoneNumber);
-                            print(prefs.getString('mobileNumber'));
-                          await   ApiService().verifyUser(newPhoneNumber);
-                          setState(() {
-                            isPhoneVerified=true;
-                          });
-                            // await ApiService().registerAndUpdateProfile(userId: userId!, profilePicture: File(profileImage!), firstName: firstName.text, lastName: lastName.text, email: email.text, mobileNumber: newPhoneNumber, linkedIn: linkedin.text, skype: skype.text, telegram: telegram.text, instagram: instagram.text, facebook: facebook.text, company: company.text, designation:designation.text, aboutMe: aboutMe.text, token: token!, flag: flag);
-                          }
-                          catch(e){
-                            Utils().toastMessage(context, 'Phone Number Not Updated', Colors.redAccent);
-                            Utils().toastMessage(context, '$e', Colors.redAccent);
-                          }
-
-                          Navigator.of(context).pop();
-                        },
-                        child: Text("Verify OTP"))
-                  ],
-                );
-              });
-
-          setState(() async {
-
-            isLoading = false;
-          });
-        };
-
-        await FirebaseAuth.instance.verifyPhoneNumber(
-            phoneNumber: newPhoneNumber,
-            verificationCompleted: verificationCompleted,
-            verificationFailed: verificationFailed,
-            codeSent: codeSent,
-            codeAutoRetrievalTimeout: (e) {
-              Utils().toastMessage(context, "Error Occurred", Colors.red);
-              setState(() {
-                isLoading = false;
-              });
-            });
-      } else {
-        print('User not signed in');
-      }
-    } catch (e) {
-      print('Error verifying phone number: $e');
-    }
-  }
 
   Future<void> _downloadImage() async {
     if (profileImage != null) {
@@ -326,12 +207,14 @@ class _Edit_ProState extends State<Edit_Pro> {
         print('User data saved successfully');
         print("User data saved in SharedPreferences");
       } catch (e) {
-        print("Error sving data ${e}");
+        print("Error saving data ${e}");
       }
     } else {
       print("userData is null");
     }
   }
+
+
 
   Future<void> _getUserDataFromSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -518,87 +401,29 @@ class _Edit_ProState extends State<Edit_Pro> {
                       const SizedBox(
                         height: 20,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10, right: 10),
-                        child: IntlPhoneField(
-                          initialCountryCode: 'IN',
-                          style: TextStyle(fontSize: 17),
-                          dropdownIcon: Icon(
-                            Icons.arrow_drop_down,
-                            color: Color(0xff102E44),
-                          ),
-                          dropdownTextStyle: TextStyle(fontSize: 15),
-                          decoration: InputDecoration(
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.black12),
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(46),
-                                  topRight: Radius.circular(46),
-                                  bottomLeft: Radius.circular(46),
-                                  bottomRight: Radius.circular(46),
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                // borderSide: BorderSide(color: Colors.blue, width: 0.4),
-                                borderSide: BorderSide(color: Colors.black12),
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(46),
-                                  topRight: Radius.circular(46),
-                                  bottomLeft: Radius.circular(46),
-                                  bottomRight: Radius.circular(46),
-                                ),
-                              ),
-                              labelText: 'Phone Number',
-                              labelStyle: TextStyle(color: Colors.black),
-                              border: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Color(0xff102E44)),
-                              )),
-                          // controller: mobileNumber,
-                          onChanged: (phone) {
-                            String countryCode = phone.countryISOCode;
-                            _countryFlagIcon = countryCode
-                                .toUpperCase()
-                                .replaceAllMapped(
-                                    RegExp(r'[A-Z]'),
-                                    (match) => String.fromCharCode(
-                                        match.group(0)!.codeUnitAt(0) +
-                                            127397));
-                            print(_countryFlagIcon);
-                            _countryCode = phone.completeNumber;
-                            print(_countryCode);
-                            setState(() {});
-                          },
-                          onSubmitted: (phone) async {
-                            User user = FirebaseAuth.instance.currentUser!;
-                            phone = _countryCode!;
-                            SharedPreferences prefs =
-                                await SharedPreferences.getInstance();
-                            var ph = prefs.getString('mobileNumber');
-                            print(ph);
-                            print(phone);
-                            if (ph != phone) {
-                              try {
-                                verifyPhoneNumber(phone,context);
-                              } catch (error) {
-                                Utils().toastMessage(context,
-                                    'Failed to call API. $error', Colors.red);
-                                setState(() {
-                                  isLoading = false;
-                                });
-                              }
-                            }
-                            else{
-                              Utils().toastMessage(context, 'Same Number', Colors.black);
-                            }
-                          },
-                        ),
-                      ),
-                      // MyTextField(
-                      //     // readOnly: true,
-                      //     hintLabel: Text("Mobile Number"),
-                      //     controller: mobileNumber,
-                      //     hintText: "Mobile Number"),
+                         GestureDetector(
+                           onTap: (){
+                             Get.to(()=> UpdatePhoneNumber() );
+                           },
+                           child: Container(
+                            width: 320,
+                           decoration: BoxDecoration(
+                             borderRadius: BorderRadius.only(
+                               topLeft: Radius.circular(46),
+                               topRight: Radius.circular(46),
+                               bottomLeft: Radius.circular(46),
+                               bottomRight: Radius.circular(46),
+                             ),
+                             border:  Border.all(
+                             color: Colors.black12
+                             ),
+                           ),
+                           child: Padding(
+                             padding: const EdgeInsets.all(20),
+                             child: Text(mobileNumber.text),
+                           ),
+                           ),
+                         ),
                       const SizedBox(
                         height: 20,
                       ),

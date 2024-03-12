@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
 import 'package:omd/controller/termsAndConditionController.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../home.dart';
@@ -10,6 +11,7 @@ import '../sign_ups.dart';
 import '../widgets/button.dart';
 
 class PermissionGuestUser extends StatelessWidget {
+  TermAndConditionController termAndConditionController=Get.put(TermAndConditionController());
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +36,16 @@ class PermissionGuestUser extends StatelessWidget {
 
             Button(
               icon: Icon(Icons.face, color: Color.fromRGBO(255, 255, 255, 1)),
-              onPressed: () => Get.offAll(() => Home_Screen()),
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => Home_Screen()),
+                        (route) => false);
+
+                termAndConditionController.showTermsConditionsDialog(context);
+
+              },
               text: 'Guest User',
             ),
             Padding(

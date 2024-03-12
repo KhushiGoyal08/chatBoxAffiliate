@@ -69,6 +69,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print("Register And Verify User: ${response.body}");
         return {'success': true, 'message': data};
       } else {
         final data = json.decode(response.body);

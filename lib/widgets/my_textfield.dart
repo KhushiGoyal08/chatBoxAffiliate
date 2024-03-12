@@ -29,19 +29,6 @@ class MyTextField extends StatelessWidget {
         maxLines: maxLines ?? null,
         controller: controller,
         decoration: InputDecoration(
-
-    suffix:  (text != '')? TextButton(
-
-        onPressed: onPressed,
-      child: Text(text,
-      style: TextStyle(
-        color: Colors.black54,
-        fontFamily: 'Montserrat',
-
-      ),
-      ),
-        ):SizedBox.shrink(),
-
           label: hintLabel,
           focusedBorder: const OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black12),

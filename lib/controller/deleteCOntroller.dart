@@ -1,13 +1,9 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
-
 import 'package:omd/services/api_service.dart';
 import 'package:omd/utils/const.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../model/UserDetailsModel.dart';
 
 
@@ -74,8 +70,9 @@ class DeleteController extends GetxController{
 
       if (response.statusCode == 200) {
         print(response);
-        print(response.data);
+        print("\n Get API \n");
        return  UserData.fromJson(response.data);
+
 
       } else {
         throw Exception('Failed to load user');

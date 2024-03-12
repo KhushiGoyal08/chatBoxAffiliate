@@ -182,7 +182,7 @@ class _Sign_UpState extends State<Sign_Up> {
                           await _saveFlag(_countryFlagIcon!);
                           print("API RESULT............${apiResult}");
                           if (apiResult['success']) {
-                         final res= await    IsFirstTimeUser.getUserByPhoneNumber(_countryCode!);
+                         final res= await  IsFirstTimeUser.getUserByPhoneNumber(_countryCode!);
                        bool  isFirstTime=res.user.isverified;
                               // final res=ApiService().getUserById();
                             // final isVerify=apiResult['data']['user']['isverified'];
@@ -237,6 +237,7 @@ class _Sign_UpState extends State<Sign_Up> {
                             });
                           }
                         } catch (error) {
+                          print("ERROR");
                           Utils().toastMessage(context,
                               'Failed to call API. $error', Colors.red);
                           setState(() {

@@ -1,12 +1,4 @@
-// To parse this JSON data, do
-//
-//     final userData = userDataFromJson(jsonString);
 
-import 'dart:convert';
-
-UserData userDataFromJson(String str) => UserData.fromJson(json.decode(str));
-
-String userDataToJson(UserData data) => json.encode(data.toJson());
 
 class UserData {
   String message;
@@ -35,6 +27,10 @@ class User {
   bool iscontactverified;
   bool isverified;
   int v;
+  String jwttoken;
+  String sessionExpiration;
+  String token;
+  bool isSuspended;
 
   User({
     required this.id,
@@ -43,6 +39,10 @@ class User {
     required this.iscontactverified,
     required this.isverified,
     required this.v,
+    required this.jwttoken,
+    required this.sessionExpiration,
+    required this.token,
+    required this.isSuspended,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -52,6 +52,10 @@ class User {
     iscontactverified: json["iscontactverified"],
     isverified: json["isverified"],
     v: json["__v"],
+    jwttoken: json["jwttoken"],
+    sessionExpiration: json["sessionExpiration"],
+    token: json["token"],
+    isSuspended: json["isSuspended"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -61,5 +65,9 @@ class User {
     "iscontactverified": iscontactverified,
     "isverified": isverified,
     "__v": v,
+    "jwttoken": jwttoken,
+    "sessionExpiration": sessionExpiration,
+    "token": token,
+    "isSuspended": isSuspended,
   };
 }

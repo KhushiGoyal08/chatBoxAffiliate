@@ -13,6 +13,7 @@ import 'package:omd/other_profile.dart';
 import 'package:omd/services/api_service.dart';
 import 'package:omd/services/chat_service.dart';
 import 'package:omd/settings.dart';
+import 'package:omd/sign_ups.dart';
 import 'package:omd/widgets/button.dart';
 import 'package:omd/widgets/utils.dart';
 import 'package:photo_view/photo_view.dart';
@@ -393,7 +394,7 @@ class _PostsState extends State<Posts> {
                                                         if (userId!.isEmpty||userId==null) {
                                                           Utils().toastMessage(
                                                               context,
-                                                              "Please fill your name and email",
+                                                              "Please Sign Up",
                                                               Colors.red);
 
                                                           Navigator.push(
@@ -401,8 +402,22 @@ class _PostsState extends State<Posts> {
                                                               MaterialPageRoute(
                                                                   builder:
                                                                       (context) =>
-                                                                          Edit_Pro()));
-                                                        } else {
+                                                                          Sign_Up()));
+                                                        }
+                                                        else if(firstName!.isEmpty||lastName!.isEmpty||email!.isEmpty){
+                                                          Utils().toastMessage(
+                                                              context,
+                                                              "Please fill name and email",
+                                                              Colors.red);
+
+                                                          Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                      Edit_Pro()));
+                                                        }
+                                                        else {
                                                           if (userId! ==
                                                               post.userId) {
                                                             Utils().toastMessage(
@@ -454,7 +469,7 @@ class _PostsState extends State<Posts> {
 
                                                         if(userId!.isEmpty||userId==null){
                                                           Utils().toastMessage(context, "Please fill your name and email", Colors.redAccent);
-                                                          Get.to(()=>Edit_Pro());
+                                                          Get.to(()=>Sign_Up());
                                                         }else{
                                                           showDialog(
                                                               context: context,

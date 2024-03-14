@@ -183,7 +183,9 @@ class _Sign_UpState extends State<Sign_Up> {
                           print("API RESULT............${apiResult}");
                           if (apiResult['success']) {
                          final res= await  IsFirstTimeUser.getUserByPhoneNumber(_countryCode!);
-                       bool  isFirstTime=res.user.isverified;
+                         print("${res}" + "result of get API");
+                       bool  isFirstTime= await res.user.isverified;
+                       print(isFirstTime);
                               // final res=ApiService().getUserById();
                             // final isVerify=apiResult['data']['user']['isverified'];
                             // print("\n"+isVerify);

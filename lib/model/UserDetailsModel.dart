@@ -27,9 +27,9 @@ class User {
   bool iscontactverified;
   bool isverified;
   int v;
-  String jwttoken;
-  String sessionExpiration;
-  String token;
+  String? jwttoken;
+  String? sessionExpiration;
+  String? token;
   bool isSuspended;
 
   User({
@@ -39,10 +39,7 @@ class User {
     required this.iscontactverified,
     required this.isverified,
     required this.v,
-    required this.jwttoken,
-    required this.sessionExpiration,
-    required this.token,
-    required this.isSuspended,
+     this.isSuspended =false,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -52,9 +49,6 @@ class User {
     iscontactverified: json["iscontactverified"],
     isverified: json["isverified"],
     v: json["__v"],
-    jwttoken: json["jwttoken"],
-    sessionExpiration: json["sessionExpiration"],
-    token: json["token"],
     isSuspended: json["isSuspended"],
   );
 
@@ -65,9 +59,6 @@ class User {
     "iscontactverified": iscontactverified,
     "isverified": isverified,
     "__v": v,
-    "jwttoken": jwttoken,
-    "sessionExpiration": sessionExpiration,
-    "token": token,
     "isSuspended": isSuspended,
   };
 }

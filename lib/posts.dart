@@ -650,6 +650,7 @@ class _PostsState extends State<Posts> {
                                                 padding: const EdgeInsets.only(
                                                   left: 20,
                                                   right: 20,
+                                                  top: 10
                                                 ),
                                                 child: Text(
                                                   post.postContent,
@@ -981,52 +982,6 @@ class _PostsState extends State<Posts> {
   }
 }
 
-//     );
-//  else if (loadingMore) {
-//     // This is the loading indicator during load more
-//     return Center(
-//       child: CircularProgressIndicator(),
-//     );
-//   } else {
-//     // This is the "Load More" button
-//     return Padding(
-//       padding: const EdgeInsets.only(
-//           bottom: 160.0, left: 20, right: 20),
-//       child: GestureDetector(
-//         onTap: () {
-//           _loadMorePosts();
-//         },
-//         child: Container(
-//             width: 320,
-//             height: 50,
-//             decoration: const BoxDecoration(
-//               borderRadius: BorderRadius.only(
-//                 topLeft: Radius.circular(55),
-//                 topRight: Radius.circular(55),
-//                 bottomLeft: Radius.circular(55),
-//                 bottomRight: Radius.circular(55),
-//               ),
-//               color: Color(0xff102E44),
-//             ),
-//             child: const Center(
-//               child: Text(
-//                 'Load More',
-//                 textAlign: TextAlign.center,
-//                 style: TextStyle(
-//                     color: Color.fromRGBO(
-//                         255, 255, 255, 1),
-//                     fontFamily: 'Roboto',
-//                     fontSize: 18,
-//                     letterSpacing:
-//                         -0.40799999237060547,
-//                     fontWeight: FontWeight.normal,
-//                     height: 1.2222222222222223),
-//               ),
-//             )),
-//       ),
-//     );
-//   }
-
 Widget _buildImagePreviewPage(String imageUrl, context) {
   return Scaffold(
     backgroundColor: Colors.black12,
@@ -1063,5 +1018,3 @@ Widget _buildImagePreviewPage(String imageUrl, context) {
     ),
   );
 }
-
-

@@ -5,7 +5,8 @@ class MyTextField extends StatelessWidget {
   final String hintText;
   final int? maxLines;
   final bool? readOnly;
-
+  final void Function()? onPressed;
+  final String text;
   final Text hintLabel;
   const MyTextField(
       {super.key,
@@ -13,13 +14,17 @@ class MyTextField extends StatelessWidget {
       required this.hintText,
       this.maxLines,
       required this.hintLabel,
-      this.readOnly});
+      this.readOnly,
+        this.text='',
+        this.onPressed
+      });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 320,
       child: TextFormField(
+
         readOnly: readOnly ?? false,
         maxLines: maxLines ?? null,
         controller: controller,

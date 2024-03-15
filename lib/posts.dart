@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,6 +13,8 @@ import 'package:omd/other_profile.dart';
 import 'package:omd/services/api_service.dart';
 import 'package:omd/services/chat_service.dart';
 import 'package:omd/settings.dart';
+import 'package:omd/sign_ups.dart';
+import 'package:omd/widgets/button.dart';
 import 'package:omd/widgets/utils.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -19,6 +22,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'admin_chat_page.dart';
 import 'chat.dart';
+import 'controller/reportController.dart';
+import 'model/reportModel.dart';
 
 class Posts extends StatefulWidget {
   const Posts({
@@ -35,6 +40,9 @@ class _PostsState extends State<Posts> {
   String? email;
   String? userProfileImage;
   String? flag;
+  final ReportModel reportData =
+      ReportModel(reportedId: '', reporterId: '', reason: '');
+  final ReportController reportController = Get.put(ReportController());
   final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
       GlobalKey<ScaffoldMessengerState>();
   ApiService apiService = ApiService();
@@ -379,28 +387,37 @@ class _PostsState extends State<Posts> {
                                                         : AssetImage(
                                                             'assets/account.png'),
                                                   ),
-                                                  trailing: IconButton(
-                                                      onPressed: () async {
-                                                        if (firstName!
-                                                                .isEmpty ||
-                                                            lastName!.isEmpty ||
-                                                            email!.isEmpty) {
+                                                  trailing:
+                                                      PopupMenuButton<String>(
+                                                    onSelected: (choice) async {
+                                                      if (choice == 'Chat'){
+                                                        if (userId!.isEmpty||userId==null) {
                                                           Utils().toastMessage(
                                                               context,
-                                                              "Please fill your name and email",
+                                                              "Please Sign Up",
                                                               Colors.red);
-                                                          Future.delayed(
-                                                              Duration(
-                                                                  seconds: 1),
-                                                              () {
-                                                            Navigator.push(
-                                                                context,
-                                                                MaterialPageRoute(
-                                                                    builder:
-                                                                        (context) =>
-                                                                            Edit_Pro()));
-                                                          });
-                                                        } else {
+
+                                                          Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          Sign_Up()));
+                                                        }
+                                                        else if(firstName!.isEmpty||lastName!.isEmpty||email!.isEmpty){
+                                                          Utils().toastMessage(
+                                                              context,
+                                                              "Please fill name and email",
+                                                              Colors.red);
+
+                                                          Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                      Edit_Pro()));
+                                                        }
+                                                        else {
                                                           if (userId! ==
                                                               post.userId) {
                                                             Utils().toastMessage(
@@ -447,11 +464,134 @@ class _PostsState extends State<Posts> {
                                                                             )));
                                                           }
                                                         }
-                                                      },
-                                                      icon: Icon(Icons.chat,
-                                                          size: 20,
-                                                          color: Color(
-                                                              0xff102E44))),
+                                                      } else if (choice ==
+                                                          'Report') {
+
+                                                        if(userId!.isEmpty||userId==null){
+                                                          Utils().toastMessage(context, "Please fill your name and email", Colors.redAccent);
+                                                          Get.to(()=>Sign_Up());
+                                                        }else{
+                                                          showDialog(
+                                                              context: context,
+                                                              builder:
+                                                                  (BuildContext
+                                                              context) {
+                                                                return Dialog(
+                                                                  backgroundColor:
+                                                                  Colors
+                                                                      .white,
+                                                                  child:
+                                                                  Container(
+                                                                    height: MediaQuery.of(
+                                                                        context)
+                                                                        .size
+                                                                        .height *
+                                                                        0.35,
+                                                                    child:
+                                                                    Padding(
+                                                                      padding:
+                                                                      const EdgeInsets
+                                                                          .all(
+                                                                          20),
+                                                                      child:
+                                                                      Column(
+                                                                        mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .spaceEvenly,
+                                                                        children: [
+                                                                          Text(
+                                                                            "Reason To Report",
+                                                                            textAlign:
+                                                                            TextAlign.center,
+                                                                            style: TextStyle(
+                                                                                color: Colors.black,
+                                                                                fontFamily: 'Montserrat',
+                                                                                fontSize: 24,
+                                                                                fontWeight: FontWeight.bold),
+                                                                          ),
+                                                                          Icon(
+                                                                              Icons
+                                                                                  .report,
+                                                                              color:
+                                                                              Colors.redAccent,
+                                                                              size: MediaQuery.of(context).size.height * 0.07),
+                                                                          TextFormField(
+                                                                            onChanged:
+                                                                                (val) {
+                                                                              reportData.reason =
+                                                                                  val;
+                                                                            },
+                                                                          ),
+                                                                          ElevatedButton(
+                                                                              onPressed:
+                                                                                  () {
+
+                                                                                if (userId! == post.userId) {
+                                                                                  Utils().toastMessage(context, "You cannot Report Yourself", Colors.red);
+                                                                                } else {
+                                                                                  if(reportData.reason!='' && reportData.reason.isNotEmpty){
+                                                                                    reportController.reportUser(userId!, post.userId, reportData.reason);
+                                                                                    print(reportData.reason);
+                                                                                    Navigator.pop(context);
+                                                                                  }
+                                                                                  else{
+                                                                                    Utils().toastMessage(
+                                                                                        context,
+                                                                                        "Please Report Something",
+                                                                                        Colors.red);
+                                                                                  }
+                                                                                }
+
+                                                                              },
+                                                                              style:
+                                                                              ElevatedButton.styleFrom(
+                                                                                backgroundColor: Color(0xff102E44),
+                                                                              ),
+                                                                              child: Text(
+                                                                                "Report User",
+                                                                                style: TextStyle(
+                                                                                  color: Color.fromRGBO(255, 255, 255, 1),
+                                                                                  fontFamily: 'Montserrat',
+                                                                                  fontSize: 17,
+                                                                                ),
+                                                                              ))
+                                                                          // Button(onPressed: (){
+                                                                          //
+                                                                          // }, icon: Icon(Icons.check_circle,color: Colors.white,), text: "Yes,I agree")
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              });
+                                                        }
+
+                                                      }
+                                                    },
+                                                    itemBuilder:
+                                                        (BuildContext context) {
+                                                      List<
+                                                              PopupMenuEntry<
+                                                                  String>>
+                                                          menuItems = [
+                                                        const PopupMenuItem<
+                                                            String>(
+                                                          value: 'Chat',
+                                                          child:
+                                                              Text('Chat'),
+                                                        ),
+                                                        const PopupMenuItem<
+                                                            String>(
+                                                          value: 'Report',
+                                                          child: Text('Report'),
+                                                        ),
+                                                      ];
+
+                                                      // Add the 'Bump up' option only if the post is 2 days old
+
+                                                      return menuItems;
+                                                    },
+                                                  ),
                                                   title: GestureDetector(
                                                     onTap: () async {
                                                       bool isRequestAccepted =
@@ -510,6 +650,7 @@ class _PostsState extends State<Posts> {
                                                 padding: const EdgeInsets.only(
                                                   left: 20,
                                                   right: 20,
+                                                  top: 10
                                                 ),
                                                 child: Text(
                                                   post.postContent,
@@ -840,52 +981,6 @@ class _PostsState extends State<Posts> {
     );
   }
 }
-
-//     );
-//  else if (loadingMore) {
-//     // This is the loading indicator during load more
-//     return Center(
-//       child: CircularProgressIndicator(),
-//     );
-//   } else {
-//     // This is the "Load More" button
-//     return Padding(
-//       padding: const EdgeInsets.only(
-//           bottom: 160.0, left: 20, right: 20),
-//       child: GestureDetector(
-//         onTap: () {
-//           _loadMorePosts();
-//         },
-//         child: Container(
-//             width: 320,
-//             height: 50,
-//             decoration: const BoxDecoration(
-//               borderRadius: BorderRadius.only(
-//                 topLeft: Radius.circular(55),
-//                 topRight: Radius.circular(55),
-//                 bottomLeft: Radius.circular(55),
-//                 bottomRight: Radius.circular(55),
-//               ),
-//               color: Color(0xff102E44),
-//             ),
-//             child: const Center(
-//               child: Text(
-//                 'Load More',
-//                 textAlign: TextAlign.center,
-//                 style: TextStyle(
-//                     color: Color.fromRGBO(
-//                         255, 255, 255, 1),
-//                     fontFamily: 'Roboto',
-//                     fontSize: 18,
-//                     letterSpacing:
-//                         -0.40799999237060547,
-//                     fontWeight: FontWeight.normal,
-//                     height: 1.2222222222222223),
-//               ),
-//             )),
-//       ),
-//     );
-//   }
 
 Widget _buildImagePreviewPage(String imageUrl, context) {
   return Scaffold(

@@ -49,17 +49,17 @@ Widget buildDrawer(BuildContext context) {
                     icon: Icons.person,
                     text: 'PROFILE',
                     onTap: () async{
-                      if (firstName!.isEmpty ||
-                          lastName!.isEmpty ||
-                          email!.isEmpty) {
+                      if (currentUserId!.isEmpty|| currentUserId==null) {
                         Utils().toastMessage(context,
-                            "Please fill your name and email", Colors.red);
-                        Get.to(() => Edit_Pro());
-                      }
-                      else{
+                            "Please Sign Up", Colors.red);
+                        Get.to(() => Sign_Up());
+                      }else{
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) => Profile()));
                       }
+
+
+
                     }),
                 ListTileWithNavigation(
                     icon: Icons.chat,
@@ -74,13 +74,19 @@ Widget buildDrawer(BuildContext context) {
                   icon: Icons.mobile_friendly,
                   text: 'CONTACT ADMIN',
                   onTap: () async {
-                    if (firstName!.isEmpty ||
+                    if(currentUserId!.isEmpty || currentUserId==null){
+                      Utils().toastMessage(context,
+                          "Please Sign Up", Colors.red);
+                      Get.to(() => Sign_Up());
+                    }
+                  else  if (firstName!.isEmpty ||
                         lastName!.isEmpty ||
                         email!.isEmpty) {
                       Utils().toastMessage(context,
                           "Please fill your name and email", Colors.red);
                       Get.to(() => Edit_Pro());
-                    } else {
+                    }
+                    else {
                       if (currentUserId == '658c582ff1bc8978d2300823') {
                         Navigator.pop(context);
                         Utils().toastMessage(context,
@@ -106,8 +112,16 @@ Widget buildDrawer(BuildContext context) {
                     icon: Icons.settings,
                     text: 'PROFILE SETTINGS',
                     onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Edit_Pro()));
+                      if(currentUserId!.isEmpty || currentUserId==null){
+                        Utils().toastMessage(context,
+                            "Please Sign Up", Colors.red);
+                        Get.to(() => Sign_Up());
+                      }
+                      else{
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => Edit_Pro()));
+                      }
+
                     }),
                 GestureDetector(
                   onTap: () async {
@@ -116,6 +130,13 @@ Widget buildDrawer(BuildContext context) {
                     print("TokenResult: ${tokenResult}");
                     if (tokenResult['success']) {
                       clearUserData();
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => Sign_Up()),
+                              (route) => false);
+                    }
+                    if(currentUserId!.isEmpty||currentUserId==null){
+                      Utils().toastMessage(context, "Please Sign Up", Colors.redAccent);
                       Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) => Sign_Up()),

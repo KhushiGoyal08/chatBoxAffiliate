@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:omd/pages/guestUserScreen.dart';
 
 import 'package:omd/settings.dart';
+import 'package:omd/sign_ups.dart';
 
 import 'package:omd/widgets/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,11 +43,6 @@ class _ProfileState extends State<Profile> {
   String? skype;
   String? telegram;
   final DeleteController deleteController=Get.put(DeleteController());
-  Future<String> getUserIdFromSharedPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String userId = prefs.getString('userId') ?? '';
-    return userId;
-  }
 
   Future<void> _fetchUserData() async {
     try {
@@ -107,9 +103,71 @@ class _ProfileState extends State<Profile> {
                 )),
             IconButton(
                 onPressed: () async{
-                  String userId = await getUserIdFromSharedPreferences();
-                  deleteController.deleteUser(userId);
-                  Get.to(() => PermissionGuestUser());
+                  ( userId !=null)?       showDialog(context: context, builder: (BuildContext context){
+                    return Dialog(
+                      child: Container(
+                        height: MediaQuery.of(context)
+                            .size
+                            .height *
+                            0.35,
+                        child: Padding(
+                          padding: const EdgeInsets
+                              .all(
+                              20),
+                          child: Column(
+
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text("Do you really want to delete your profile ?? This action will remove your all chats and profile.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.black, fontFamily: 'Montserrat', fontSize: 17,),
+                              ),
+                              Row(
+
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  ElevatedButton(onPressed: (){
+                                    Navigator.pop(context);
+                                  },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Color(0xff102E44),
+                                      ),
+                                      child: Text(
+                                    "No",
+                                    style: TextStyle(
+                                      color: Color.fromRGBO(255, 255, 255, 1),
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 17,
+                                    ),
+                                  )),
+                                  ElevatedButton(onPressed: ()async {
+                                      String userId = await deleteController.getUserIdFromSharedPreferences();
+                                      deleteController.deleteUser(userId);
+                                      Get.to(() => PermissionGuestUser());
+                                      // Get.offAll(() => Sign_Up());
+                                  },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Color(0xff102E44),
+                                      ),
+                                      child: Text(
+                                        "Yes",
+                                        style: TextStyle(
+                                          color: Color.fromRGBO(255, 255, 255, 1),
+                                          fontFamily: 'Montserrat',
+                                          fontSize: 17,
+                                        ),
+                                      ))
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }):Utils().toastMessage(context, "Please Sign Up", Colors.redAccent);
+                  // String userId = await getUserIdFromSharedPreferences();
+                  // deleteController.deleteUser(userId);
+                  // Get.to(() => PermissionGuestUser());
                 },
                 icon: Icon(
                   Icons.delete,
@@ -138,7 +196,7 @@ class _ProfileState extends State<Profile> {
                   child: Text('Error: ${snapshot.error}'),
                 );
               } else {
-                return SingleChildScrollView(
+                return  SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

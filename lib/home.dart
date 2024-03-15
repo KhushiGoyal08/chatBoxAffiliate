@@ -8,6 +8,7 @@ import 'package:omd/edit_profile.dart';
 import 'package:omd/msgs_requests.dart';
 import 'package:omd/search_screen.dart';
 import 'package:omd/services/chat_service.dart';
+import 'package:omd/sign_ups.dart';
 import 'package:omd/swiper.dart';
 import 'package:omd/posts.dart';
 import 'package:omd/widgets/utils.dart';
@@ -160,6 +161,12 @@ class _Home_ScreenState extends State<Home_Screen> {
                   //foregroundColor: Colors.black,
                   mini: true,
                   onPressed: () {
+                    if(currentUserId!.isEmpty||currentUserId==null){
+                      Utils().toastMessage(context,
+                          "Please Sign Up", Colors.red);
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => Sign_Up()));
+                    }
                     if (firstName!.isEmpty ||
                         lastName!.isEmpty ||
                         email!.isEmpty) {
@@ -197,6 +204,12 @@ class _Home_ScreenState extends State<Home_Screen> {
                 ],
                 onTap: (int index) async {
                   if (index == 1) {
+                    if(currentUserId!.isEmpty||currentUserId==null){
+                      Utils().toastMessage(context,
+                          "Please Sign Up", Colors.red);
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => Sign_Up()));
+                    }
                     if (firstName!.isEmpty ||
                         lastName!.isEmpty ||
                         email!.isEmpty) {

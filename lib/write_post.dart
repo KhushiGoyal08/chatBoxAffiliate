@@ -152,6 +152,7 @@ class _WPostState extends State<WPost> {
   }
 
   final postContent = TextEditingController();
+  final postDesc = TextEditingController();
   void _addPost() async {
     String postContents = postContent.text;
     File? compressedImage;
@@ -174,8 +175,9 @@ class _WPostState extends State<WPost> {
       } else {
         result = await ApiService().addPost(userId!, postContent: postContents);
       }
-
+           print(result);
       if (result['success']) {
+        print(result);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Post added successfully")),
         );
@@ -267,9 +269,9 @@ class _WPostState extends State<WPost> {
               child: CircularProgressIndicator(),
             )
           : Stack(children: [
-              Column(children: [
+              ListView(children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 30, top: 20),
+                  padding: const EdgeInsets.only(left: 30, top: 20,right: 30),
                   child: Row(
                     children: [
                       CircleAvatar(
@@ -291,24 +293,64 @@ class _WPostState extends State<WPost> {
                     ],
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20,top: 16),
+                  child: Text(
+                    'Title',
+                    style: GoogleFonts.poppins(
+                        textStyle: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                            color: Color(0xff1A1B23))),
+                  ),
+                ),
                 Container(
-                    padding: EdgeInsets.only(left: 30, top: 15),
+                    padding: EdgeInsets.only(left: 16, top: 15,right: 16),
                     child: TextField(
                       controller: postContent,
                       maxLines: 3,
                       maxLength: 100,
                       textInputAction: TextInputAction.newline,
                       decoration: InputDecoration(
-                        hintText: 'Write something ...',
+                        hintText: 'Add Title',
                         hintStyle: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 12,
                           color: Color(0xff919191),
                         ),
-                        focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.transparent)),
-                        enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.transparent)),
+                        // focusedBorder: OutlineInputBorder(
+                        //     borderSide: BorderSide(color: Colors.transparent)),
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade100)),
+                      ),
+                    )),
+                // Center(
+                //   child: Text(
+                //     'Add Description',
+                //     style: GoogleFonts.sansita(
+                //         textStyle: const TextStyle(
+                //             fontWeight: FontWeight.bold,
+                //             fontSize: 20,
+                //             color: Color(0xff1A1B23))),
+                //   ),
+                // ),
+                Container(
+                    padding: EdgeInsets.only(left: 16, top: 15,right: 16),
+                    child: TextField(
+                      controller: postDesc,
+                      maxLines: 8,
+                      maxLength: 500,
+                      textInputAction: TextInputAction.newline,
+                      decoration: InputDecoration(
+                        hintText: 'Add Description Here',
+                        hintStyle: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                          color: Color(0xff919191),
+                        ),
+
+                        // border: OutlineInputBorder(
+                        //     borderSide: BorderSide(color: Colors.grey.shade100)),
                       ),
                     )),
                 Padding(
@@ -322,11 +364,11 @@ class _WPostState extends State<WPost> {
                       ),
                       child: _image != null
                           ? Image.file(
-                              _image!,
-                              fit: BoxFit.cover,
-                            )
+                        _image!,
+                        fit: BoxFit.cover,
+                      )
                           : null,
-                    ))
+                    )),
               ]),
               Positioned(
                   bottom: 20,

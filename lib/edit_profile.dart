@@ -1,13 +1,18 @@
 import 'dart:io';
-
+import 'package:email_otp/email_otp.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:omd/home.dart';
-import 'package:omd/profile.dart';
 import 'package:http/http.dart' as http;
+import 'package:omd/pages/mobile_no_screen.dart';
 import 'package:omd/services/api_service.dart';
 import 'package:omd/widgets/my_textfield.dart';
 import 'package:omd/widgets/utils.dart';
@@ -16,6 +21,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Edit_Pro extends StatefulWidget {
+  static String verify = '';
   Edit_Pro({
     Key? key,
   }) : super(key: key);
@@ -30,7 +36,6 @@ class _Edit_ProState extends State<Edit_Pro> {
   TextEditingController lastName = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController mobileNumber = TextEditingController();
-
   TextEditingController linkedin = TextEditingController();
   TextEditingController skype = TextEditingController();
   TextEditingController telegram = TextEditingController();
@@ -39,16 +44,19 @@ class _Edit_ProState extends State<Edit_Pro> {
   TextEditingController company = TextEditingController();
   TextEditingController designation = TextEditingController();
   TextEditingController aboutMe = TextEditingController();
-
+  String? otp;
+  String? emailOtp;
   String? profileImage;
-
+  // VerifyUser verifyEmail=Get.put(VerifyUser());
   String? userId;
   File? _image;
+  String? otpCode;
   XFile? _selectImage;
+  bool isPhoneVerified=false;
   final picker = ImagePicker();
   bool isLoading = false;
   bool _imageSelected = false;
-
+  EmailOTP myauth = EmailOTP();
   Future imagePickerFromGallery() async {
     _selectImage = (await picker.pickImage(source: ImageSource.gallery))!;
 
@@ -112,6 +120,8 @@ class _Edit_ProState extends State<Edit_Pro> {
       }
     }
   }
+
+
 
   Future<void> _downloadImage() async {
     if (profileImage != null) {
@@ -197,12 +207,14 @@ class _Edit_ProState extends State<Edit_Pro> {
         print('User data saved successfully');
         print("User data saved in SharedPreferences");
       } catch (e) {
-        print("Error sving data ${e}");
+        print("Error saving data ${e}");
       }
     } else {
       print("userData is null");
     }
   }
+
+
 
   Future<void> _getUserDataFromSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -239,6 +251,8 @@ class _Edit_ProState extends State<Edit_Pro> {
     super.initState();
   }
 
+  String? _countryCode;
+  String? _countryFlagIcon;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -341,18 +355,75 @@ class _Edit_ProState extends State<Edit_Pro> {
                       const SizedBox(
                         height: 20,
                       ),
-                      MyTextField(
-                          hintLabel: Text("Email"),
+                      Container(
+                        width: 320,
+                        child: TextFormField(
                           controller: email,
-                          hintText: "Email"),
+                          decoration:const  InputDecoration(
+                            label: Text(' Email'),
+                            focusedBorder:  OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black12),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(46),
+                                topRight: Radius.circular(46),
+                                bottomLeft: Radius.circular(46),
+                                bottomRight: Radius.circular(46),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              // borderSide: BorderSide(color: Colors.blue, width: 0.4),
+                              borderSide: BorderSide(color: Colors.black12),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(46),
+                                topRight: Radius.circular(46),
+                                bottomLeft: Radius.circular(46),
+                                bottomRight: Radius.circular(46),
+                              ),
+                            ),
+                            contentPadding: EdgeInsets.all(15),
+                            hintText: 'Enter the Email',
+                            hintStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                fontStyle: FontStyle.normal,
+                                color: Colors.black,
+                                letterSpacing: -0.33,
+                                fontFamily: 'Montserrat'),
+                          ),
+                          validator: (v) {
+                            if (v!.isEmpty) {
+                              return "Enter the Email";
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
                       const SizedBox(
                         height: 20,
                       ),
-                      MyTextField(
-                          readOnly: true,
-                          hintLabel: Text("Mobile Number"),
-                          controller: mobileNumber,
-                          hintText: "Mobile Number"),
+                         GestureDetector(
+                           onTap: (){
+                             Get.to(()=> UpdatePhoneNumber() );
+                           },
+                           child: Container(
+                            width: 320,
+                           decoration: BoxDecoration(
+                             borderRadius: BorderRadius.only(
+                               topLeft: Radius.circular(46),
+                               topRight: Radius.circular(46),
+                               bottomLeft: Radius.circular(46),
+                               bottomRight: Radius.circular(46),
+                             ),
+                             border:  Border.all(
+                             color: Colors.black12
+                             ),
+                           ),
+                           child: Padding(
+                             padding: const EdgeInsets.all(20),
+                             child: Text(mobileNumber.text),
+                           ),
+                           ),
+                         ),
                       const SizedBox(
                         height: 20,
                       ),
@@ -420,6 +491,7 @@ class _Edit_ProState extends State<Edit_Pro> {
                           setState(() {
                             isLoading = true;
                           });
+
                           if (!RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$')
                               .hasMatch(email.text)) {
                             Utils().toastMessage(context,
@@ -435,7 +507,7 @@ class _Edit_ProState extends State<Edit_Pro> {
                                     firstName: firstName.text.trim(),
                                     lastName: lastName.text.trim(),
                                     email: email.text.trim(),
-                                    mobileNumber: mobileNumber.text,
+                                    mobileNumber:(isPhoneVerified)? _countryCode!:mobileNumber.text,
                                     linkedIn: linkedin.text.trim(),
                                     skype: skype.text.trim(),
                                     telegram: telegram.text.trim(),

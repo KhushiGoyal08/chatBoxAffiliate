@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 class ApiService {
   static const String BASE_URL =
       'https://online-media-tools-server-vercel.vercel.app';
-
+  // static const String BASE_URL='https://localhost:8000';
   Future<Map<String, dynamic>> googleSignUp({
     required String email,
     required String profileImageUrl,
@@ -69,6 +69,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print("Register And Verify User: ${response.body}");
         return {'success': true, 'message': data};
       } else {
         final data = json.decode(response.body);
@@ -109,6 +110,9 @@ class ApiService {
       return {'success': false, 'message': 'Failed to verify contact. $error'};
     }
   }
+
+
+  // verify user
 
   Future<Map<String, dynamic>> getUserById(String userId) async {
     final String apiUrl = '$BASE_URL/api/users/$userId/get_user';

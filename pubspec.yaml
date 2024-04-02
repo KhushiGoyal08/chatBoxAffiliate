@@ -33,7 +33,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_swiper_view: null
-  google_fonts: null
+  google_fonts: 6.1.0
   http: ^1.1.0
   image_picker: null
   intl: null
@@ -69,7 +69,6 @@ dependencies:
   firebase_dynamic_links: ^5.4.8
   email_auth: ^1.1.1
   email_otp: ^2.1.2
-
 
 dev_dependencies:
   # The "flutter_lints" package below contains a set of recommended lints to

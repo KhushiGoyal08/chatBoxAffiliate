@@ -1,11 +1,11 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import 'package:omd/chat.dart';
 import 'package:omd/contact_admin.dart';
 import 'package:omd/edit_profile.dart';
 import 'package:omd/msgs_requests.dart';
+import 'package:omd/pages/partnerpage.dart';
 import 'package:omd/search_screen.dart';
 import 'package:omd/services/chat_service.dart';
 import 'package:omd/sign_ups.dart';
@@ -15,10 +15,12 @@ import 'package:omd/widgets/utils.dart';
 import 'package:omd/write_post.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'build_drawer.dart';
+import 'controller/deleteCOntroller.dart';
 
 class Home_Screen extends StatefulWidget {
   final Map<String, dynamic>? userData;
-  const Home_Screen({super.key, this.userData});
+
+  Home_Screen({super.key, this.userData});
 
   @override
   State<Home_Screen> createState() => _Home_ScreenState();
@@ -29,23 +31,25 @@ class _Home_ScreenState extends State<Home_Screen> {
   String? firstName;
   String? lastName;
   String? email;
-  bool user=false;
-  // NotificationService notificationService = NotificationService();
+  String? mobile;
+  bool user = false;
+  final deleteController = Get.put(DeleteController());
+  bool? isSuspended = false;
   Future<void> _fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     currentUserId = prefs.getString('userId') ?? '';
     firstName = prefs.getString('firstName');
     lastName = prefs.getString('lastName');
     email = prefs.getString('email');
-    if(firstName==''){
+    mobile = prefs.getString('mobileNumber');
+    getUserData();
+    if (firstName == '') {
       setState(() {
-        user=true;
+        user = true;
       });
     }
     setState(() {}); // Trigger a rebuild to update the UI with the fetched data
   }
-
-  bool _isSelected = true;
 
   List<Widget> screens = [
     // Home(),
@@ -53,11 +57,16 @@ class _Home_ScreenState extends State<Home_Screen> {
     // Person(),
     // Menu(),
   ];
+  Future<void> getUserData() async {
+    final user = await deleteController.getUserByPhoneNumber(mobile!);
+
+    isSuspended = user.user.isSuspended;
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchUserData();
-
   }
 
   @override
@@ -84,7 +93,7 @@ class _Home_ScreenState extends State<Home_Screen> {
           }
 
           return Scaffold(
-            drawer: buildDrawer(context),
+            drawer: buildDrawer(context, isSuspended!),
             appBar: AppBar(
               iconTheme: const IconThemeData(color: Colors.black),
               backgroundColor: Colors.white,
@@ -98,10 +107,15 @@ class _Home_ScreenState extends State<Home_Screen> {
                   padding: const EdgeInsets.only(top: 15, bottom: 15),
                   child: InkWell(
                     onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => Msgs_Requests()));
+                      if (isSuspended!) {
+                        Utils().toastMessage(context,
+                            'Your Account Has Suspended', Colors.redAccent);
+                      } else {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Msgs_Requests()));
+                      }
                     },
                     child: Stack(
                       children: [
@@ -132,10 +146,15 @@ class _Home_ScreenState extends State<Home_Screen> {
                   padding: EdgeInsets.all(16.0),
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SearchScreen()));
+                      if (isSuspended!) {
+                        Utils().toastMessage(context,
+                            'Your Account Has Suspended', Colors.redAccent);
+                      } else {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SearchScreen()));
+                      }
                     },
                     child: Icon(
                       Icons.search,
@@ -161,22 +180,29 @@ class _Home_ScreenState extends State<Home_Screen> {
                   //foregroundColor: Colors.black,
                   mini: true,
                   onPressed: () {
-                    if(currentUserId!.isEmpty||currentUserId==null){
+                    if (isSuspended!) {
                       Utils().toastMessage(context,
-                          "Please Sign Up", Colors.red);
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Sign_Up()));
-                    }
-                    if (firstName!.isEmpty ||
-                        lastName!.isEmpty ||
-                        email!.isEmpty) {
-                      Utils().toastMessage(context,
-                          "Please fill the name and email", Colors.red);
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Edit_Pro()));
+                          'Your Account Has Suspended', Colors.redAccent);
                     } else {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => WPost()));
+                      if (currentUserId!.isEmpty || currentUserId == null) {
+                        Utils().toastMessage(
+                            context, "Please Sign Up", Colors.red);
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => Sign_Up()));
+                      }
+                      if (firstName!.isEmpty ||
+                          lastName!.isEmpty ||
+                          email!.isEmpty) {
+                        Utils().toastMessage(context,
+                            "Please fill the name and email", Colors.red);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Edit_Pro()));
+                      } else {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => WPost()));
+                      }
                     }
                   },
                   child: const Icon(
@@ -201,39 +227,70 @@ class _Home_ScreenState extends State<Home_Screen> {
                     icon: Icon(Icons.mobile_screen_share_sharp),
                     label: 'Contact Admin',
                   ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.handshake_outlined),
+                    label: 'Our Partners',
+                  ),
                 ],
                 onTap: (int index) async {
                   if (index == 1) {
-                    if(currentUserId!.isEmpty||currentUserId==null){
-                      Utils().toastMessage(context,
-                          "Please Sign Up", Colors.red);
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Sign_Up()));
-                    }
-                    if (firstName!.isEmpty ||
-                        lastName!.isEmpty ||
-                        email!.isEmpty) {
-                      Utils().toastMessage(context,
-                          "Please fill your name and email", Colors.red);
-                      Get.to(() => Edit_Pro());
+                    if (isSuspended!) {
+                      Utils().toastMessage(
+                          context, "Your Account Has Suspended", Colors.red);
                     } else {
-                      if (currentUserId == '658c582ff1bc8978d2300823') {
+                      if (currentUserId!.isEmpty || currentUserId == null) {
+                        Utils().toastMessage(
+                            context, "Please Sign Up", Colors.red);
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => Sign_Up()));
+                      }
+                      if (firstName!.isEmpty ||
+                          lastName!.isEmpty ||
+                          email!.isEmpty) {
                         Utils().toastMessage(context,
-                            'You cannot chat with yourself', Colors.red);
+                            "Please fill your name and email", Colors.red);
+                        Get.to(() => Edit_Pro());
                       } else {
-                        String chatRoomId = await ChatService().getChatRoomId(
-                          currentUserId!,
-                          '658c582ff1bc8978d2300823',
-                        );
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ContactAdmin(
-                              chatRoomId: chatRoomId,
-                              receiverId: '658c582ff1bc8978d2300823',
+                        if (currentUserId == '658c582ff1bc8978d2300823') {
+                          Utils().toastMessage(context,
+                              'You cannot chat with yourself', Colors.red);
+                        } else {
+                          String chatRoomId = await ChatService().getChatRoomId(
+                            currentUserId!,
+                            '658c582ff1bc8978d2300823',
+                          );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ContactAdmin(
+                                chatRoomId: chatRoomId,
+                                receiverId: '658c582ff1bc8978d2300823',
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
+                      }
+                    }
+                  }
+                  if (index == 2) {
+                    if (isSuspended!) {
+                      Utils().toastMessage(
+                          context, "Your Account Has Suspended", Colors.red);
+                    } else {
+                      if (currentUserId!.isEmpty || currentUserId == null) {
+                        Utils().toastMessage(
+                            context, "Please Sign Up", Colors.red);
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => Sign_Up()));
+                      }
+                      if (firstName!.isEmpty ||
+                          lastName!.isEmpty ||
+                          email!.isEmpty) {
+                        Utils().toastMessage(context,
+                            "Please fill your name and email", Colors.red);
+                        Get.to(() => Edit_Pro());
+                      } else {
+                        Get.to(() => PartnerPage());
                       }
                     }
                   }

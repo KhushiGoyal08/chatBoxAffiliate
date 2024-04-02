@@ -19,10 +19,15 @@ class Verify_OTP extends StatefulWidget {
   final String phoneNumber;
   final String countryFlag;
   final bool verify;
-  const Verify_OTP(
-      {Key? key, required this.phoneNumber, required this.countryFlag,
-        required this.verify
-      })
+  bool isSuspended;
+  bool isEmailVerified;
+  Verify_OTP(
+      {Key? key,
+      required this.phoneNumber,
+      required this.countryFlag,
+      this.isSuspended = false,
+      this.isEmailVerified = false,
+      required this.verify})
       : super(key: key);
 
   @override
@@ -33,7 +38,9 @@ class _Verify_OTPState extends State<Verify_OTP> with TickerProviderStateMixin {
   FirebaseAuth auth = FirebaseAuth.instance;
   bool isLoading = false;
   String? token;
-  TermAndConditionController termcontroller =Get.put(TermAndConditionController());
+  bool? isEmailVerified;
+  TermAndConditionController termcontroller =
+      Get.put(TermAndConditionController());
   Future<void> _saveToken(String token) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('token', '');
@@ -64,6 +71,8 @@ class _Verify_OTPState extends State<Verify_OTP> with TickerProviderStateMixin {
       prefs.setBool('iscontactverified', userData['iscontactverified']);
       prefs.setString('sessionExpiration', userData['sessionExpiration'] ?? '');
       prefs.setString('token', userData['token'] ?? '');
+      prefs.setBool('isSuspended', widget.isSuspended!);
+      prefs.setBool('isEmailVerified', widget.isEmailVerified);
 
       print("User data saved in SharedPreferences");
     } else {
@@ -287,32 +296,30 @@ class _Verify_OTPState extends State<Verify_OTP> with TickerProviderStateMixin {
                                 final tokenResult = await ApiService()
                                     .updateUserToken(userId, token!);
 
-
                                 if (tokenResult['success']) {
-
                                   _saveToken(token!);
                                   print(
                                       "Token Result:/// ${tokenResult['existingUser']}");
-                                  if(widget.verify){
+                                  if (widget.verify) {
                                     Navigator.pushAndRemoveUntil(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) => Home_Screen(
-                                              userData: result['data']
-                                              ['user'],
-                                            )),
-                                            (route) => false);
-
-                                  }else{
+                                                  userData: result['data']
+                                                      ['user'],
+                                                )),
+                                        (route) => false);
+                                  } else {
                                     Navigator.pushAndRemoveUntil(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) => Home_Screen(
-                                              userData: result['data']
-                                              ['user'],
-                                            )),
-                                            (route) => false);
-                                    termcontroller.showTermsConditionsDialog(context);
+                                                  userData: result['data']
+                                                      ['user'],
+                                                )),
+                                        (route) => false);
+                                    termcontroller
+                                        .showTermsConditionsDialog(context);
                                   }
                                 } else {
                                   Utils().toastMessage(

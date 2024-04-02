@@ -25,10 +25,12 @@ class _EditWPostState extends State<EditWPost> {
   File? _image;
   bool isLoading = false;
   XFile? _selectImage;
+  List<String> all_tag = ['blank', 'buy', 'sell'];
   final picker = ImagePicker();
+  List<bool> _isSelected = [true, false, false];
 
   bool isAddingPost = false;
-
+  String tag = 'blank';
   Future imagePickerFromGallery() async {
     _selectImage = (await picker.pickImage(source: ImageSource.gallery))!;
 
@@ -141,7 +143,7 @@ class _EditWPostState extends State<EditWPost> {
     String postId = widget.post.id!;
     String newPostContent = postContent.text;
     File? newPostMedia = _image;
-
+    String newTag = tag;
     setState(() {
       isLoading = true;
     });
@@ -160,8 +162,8 @@ class _EditWPostState extends State<EditWPost> {
               widget.post.postMediaUrl.isNotEmpty)) {
         newPostMedia = null;
       } else {
-        var result =
-            await ApiService().editPost(postId, newPostContent, newPostMedia);
+        var result = await ApiService()
+            .editPost(postId, newPostContent, newPostMedia, newTag);
 
         if (result['success']) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -191,6 +193,9 @@ class _EditWPostState extends State<EditWPost> {
   @override
   void initState() {
     // TODO: implement initState
+
+    tag = widget.post.tag;
+    print(widget.post.tag);
     postContent = TextEditingController(text: widget.post.postContent);
     if (widget.post.postMediaUrl != null &&
         widget.post.postMediaUrl.isNotEmpty) {
@@ -203,6 +208,7 @@ class _EditWPostState extends State<EditWPost> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Color(0xffF8FBFF),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -269,7 +275,103 @@ class _EditWPostState extends State<EditWPost> {
                                   fontSize: 14,
                                   color: Color(0xff1A1B23))),
                         ),
+                        Spacer(),
+                        (tag != 'blank')
+                            ? Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.blueGrey,
+                                    borderRadius: BorderRadius.circular(20)),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 4),
+                                child: Text(
+                                  widget.post.tag.toUpperCase(),
+                                  style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 12,
+                                          color: Colors.white,
+                                          height: 2.5)),
+                                ),
+                              )
+                            : Container(),
+                        SizedBox(
+                          width: 20,
+                        )
                       ],
+                    ),
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: ToggleButtons(
+                        selectedBorderColor: Colors.black,
+                        borderRadius: BorderRadius.circular(20),
+                        fillColor: Color(0xff1A1B23),
+                        isSelected: _isSelected,
+                        onPressed: (int index) async {
+                          tag = all_tag[index];
+                          setState(() {
+                            // Toggle the state of the button at the given index
+
+                            _isSelected[index] = !_isSelected[index];
+                            // Update the state of other buttons
+                            for (int buttonIndex = 0;
+                                buttonIndex < _isSelected.length;
+                                buttonIndex++) {
+                              if (buttonIndex != index) {
+                                _isSelected[buttonIndex] = false;
+                              }
+                            }
+                          });
+                        },
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal:
+                                    MediaQuery.of(context).size.width * 0.1),
+                            child: Text(
+                              "Blank",
+                              style: GoogleFonts.poppins(
+                                  textStyle: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: _isSelected[0]
+                                          ? Colors.white
+                                          : Color(0xff1A1B23))),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal:
+                                    MediaQuery.of(context).size.width * 0.1),
+                            child: Text(
+                              "Buy",
+                              style: GoogleFonts.poppins(
+                                  textStyle: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: _isSelected[1]
+                                          ? Colors.white
+                                          : Color(0xff1A1B23))),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal:
+                                    MediaQuery.of(context).size.width * 0.1),
+                            child: Text(
+                              "Sell",
+                              style: GoogleFonts.poppins(
+                                  textStyle: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: _isSelected[2]
+                                          ? Colors.white
+                                          : Color(0xff1A1B23))),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   Container(
@@ -277,7 +379,7 @@ class _EditWPostState extends State<EditWPost> {
                       child: TextField(
                         controller: postContent,
                         maxLines: null,
-                        maxLength: 100,
+                        maxLength: 500,
                         textInputAction: TextInputAction.newline,
                         decoration: InputDecoration(
                           hintText: 'Write something ...',

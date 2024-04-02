@@ -1,15 +1,18 @@
 import 'dart:io';
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:omd/edit_profile.dart';
 import 'package:omd/home.dart';
 import 'package:image/image.dart' as img;
+import 'package:omd/pages/mypostScreen.dart';
 import 'package:omd/services/api_service.dart';
 import 'package:omd/settings.dart';
 import 'package:omd/widgets/utils.dart';
@@ -30,7 +33,8 @@ class _WPostState extends State<WPost> {
   String? lastName;
   String? email;
   String? flag;
-
+  String? tag;
+  List<String> all_tag = ['blank', 'buy', 'sell'];
   Future<void> _fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     userId = prefs.getString('userId') ?? '';
@@ -47,6 +51,7 @@ class _WPostState extends State<WPost> {
   XFile? _selectImage;
   final picker = ImagePicker();
   bool isAddingPost = false;
+  List<bool> _isSelected = [true, false, false];
 
   Future imagePickerFromGallery() async {
     _selectImage = (await picker.pickImage(source: ImageSource.gallery))!;
@@ -152,7 +157,7 @@ class _WPostState extends State<WPost> {
   }
 
   final postContent = TextEditingController();
-  final postDesc = TextEditingController();
+  late TabController _tabController;
   void _addPost() async {
     String postContents = postContent.text;
     File? compressedImage;
@@ -168,18 +173,22 @@ class _WPostState extends State<WPost> {
 
       // Check if the compressed image is available
       if (_image != null && postContents.isNotEmpty) {
-        result = await ApiService()
-            .addPost(userId!, postContent: postContents, postMedia: _image);
+        result = await ApiService().addPost(userId!,
+            postContent: postContents, postMedia: _image, tag: tag);
       } else if (postContents.isEmpty) {
-        result = await ApiService().addPost(userId!, postMedia: _image);
+        result =
+            await ApiService().addPost(userId!, postMedia: _image, tag: tag);
       } else {
-        result = await ApiService().addPost(userId!, postContent: postContents);
+        result = await ApiService()
+            .addPost(userId!, postContent: postContents, tag: tag);
       }
-           print(result);
+      print(result);
       if (result['success']) {
         print(result);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Post added successfully")),
+          SnackBar(
+              content: Text(
+                  "Post is Under Approval .Once Approved you will get Notified")),
         );
         postContent.clear();
         _image = null;
@@ -208,10 +217,11 @@ class _WPostState extends State<WPost> {
       setState(() {
         isAddingPost = false;
       });
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => Home_Screen()),
-          (route) => false);
+      Get.to(() => MyPost());
+      // Navigator.pushAndRemoveUntil(
+      //     context,
+      //     MaterialPageRoute(builder: (context) => Home_Screen()),
+      //     (route) => false);
     }
   }
 
@@ -271,7 +281,7 @@ class _WPostState extends State<WPost> {
           : Stack(children: [
               ListView(children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 30, top: 20,right: 30),
+                  padding: const EdgeInsets.only(left: 30, top: 20, right: 30),
                   child: Row(
                     children: [
                       CircleAvatar(
@@ -293,8 +303,85 @@ class _WPostState extends State<WPost> {
                     ],
                   ),
                 ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: ToggleButtons(
+                      selectedBorderColor: Colors.black,
+                      borderRadius: BorderRadius.circular(20),
+                      fillColor: Color(0xff1A1B23),
+                      isSelected: _isSelected,
+                      onPressed: (int index) async {
+                        tag = all_tag[index];
+                        SharedPreferences prefs =
+                            await SharedPreferences.getInstance();
+                        prefs.setString('tag', tag!);
+                        setState(() {
+                          // Toggle the state of the button at the given index
+
+                          _isSelected[index] = !_isSelected[index];
+                          // Update the state of other buttons
+                          for (int buttonIndex = 0;
+                              buttonIndex < _isSelected.length;
+                              buttonIndex++) {
+                            if (buttonIndex != index) {
+                              _isSelected[buttonIndex] = false;
+                            }
+                          }
+                        });
+                      },
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                                  MediaQuery.of(context).size.width * 0.1),
+                          child: Text(
+                            "Blank",
+                            style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    color: _isSelected[0]
+                                        ? Colors.white
+                                        : Color(0xff1A1B23))),
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                                  MediaQuery.of(context).size.width * 0.1),
+                          child: Text(
+                            "Buy",
+                            style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    color: _isSelected[1]
+                                        ? Colors.white
+                                        : Color(0xff1A1B23))),
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                                  MediaQuery.of(context).size.width * 0.1),
+                          child: Text(
+                            "Sell",
+                            style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    color: _isSelected[2]
+                                        ? Colors.white
+                                        : Color(0xff1A1B23))),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 20,top: 16),
+                  padding: const EdgeInsets.only(left: 20, top: 16),
                   child: Text(
                     'Title',
                     style: GoogleFonts.poppins(
@@ -305,11 +392,11 @@ class _WPostState extends State<WPost> {
                   ),
                 ),
                 Container(
-                    padding: EdgeInsets.only(left: 16, top: 15,right: 16),
+                    padding: EdgeInsets.only(left: 16, top: 15, right: 16),
                     child: TextField(
                       controller: postContent,
-                      maxLines: 3,
-                      maxLength: 100,
+                      maxLines: 8,
+                      maxLength: 500,
                       textInputAction: TextInputAction.newline,
                       decoration: InputDecoration(
                         hintText: 'Add Title',
@@ -321,36 +408,9 @@ class _WPostState extends State<WPost> {
                         // focusedBorder: OutlineInputBorder(
                         //     borderSide: BorderSide(color: Colors.transparent)),
                         border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey.shade100)),
-                      ),
-                    )),
-                // Center(
-                //   child: Text(
-                //     'Add Description',
-                //     style: GoogleFonts.sansita(
-                //         textStyle: const TextStyle(
-                //             fontWeight: FontWeight.bold,
-                //             fontSize: 20,
-                //             color: Color(0xff1A1B23))),
-                //   ),
-                // ),
-                Container(
-                    padding: EdgeInsets.only(left: 16, top: 15,right: 16),
-                    child: TextField(
-                      controller: postDesc,
-                      maxLines: 8,
-                      maxLength: 500,
-                      textInputAction: TextInputAction.newline,
-                      decoration: InputDecoration(
-                        hintText: 'Add Description Here',
-                        hintStyle: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 12,
-                          color: Color(0xff919191),
-                        ),
-
-                        // border: OutlineInputBorder(
-                        //     borderSide: BorderSide(color: Colors.grey.shade100)),
+                            borderRadius: BorderRadius.circular(35),
+                            borderSide:
+                                BorderSide(color: Colors.grey.shade100)),
                       ),
                     )),
                 Padding(
@@ -364,9 +424,9 @@ class _WPostState extends State<WPost> {
                       ),
                       child: _image != null
                           ? Image.file(
-                        _image!,
-                        fit: BoxFit.cover,
-                      )
+                              _image!,
+                              fit: BoxFit.cover,
+                            )
                           : null,
                     )),
               ]),
@@ -412,3 +472,5 @@ class _WPostState extends State<WPost> {
     );
   }
 }
+
+//isEmailVerified

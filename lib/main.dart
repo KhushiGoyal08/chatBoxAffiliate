@@ -1,18 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:omd/admin_chat_page.dart';
 import 'package:omd/contact_admin.dart';
+import 'package:omd/controller/bindings.dart';
 import 'package:omd/provider/image_provider.dart';
 import 'package:omd/splash.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
+import 'package:upgrader/upgrader.dart';
 import 'chat.dart';
 
 AndroidNotificationChannel channel = const AndroidNotificationChannel(
@@ -22,7 +21,6 @@ AndroidNotificationChannel channel = const AndroidNotificationChannel(
         'This channel is used for important notifications.', // description
     importance: Importance.high,
     playSound: true);
-
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -72,8 +70,10 @@ void main() async {
       .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
-  await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-  IOSFlutterLocalNotificationsPlugin>()?.initialize(const DarwinInitializationSettings());
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>()
+      ?.initialize(const DarwinInitializationSettings());
   // FirebaseMessaging.onBackgroundMessage((RemoteMessage message) {
   //   if (message.notification != null) {
   //     //No need for showing Notification manually.
@@ -91,15 +91,12 @@ void main() async {
   var androidInit =
       const AndroidInitializationSettings('@drawable/notification');
 
-
-
   var initSettings = InitializationSettings(android: androidInit);
   try {
     FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
     String? token = await _messaging.getToken();
-    print("The token is "+token!);
-
+    print("The token is " + token!);
 
     await flutterLocalNotificationsPlugin.initialize(initSettings,
         onDidReceiveNotificationResponse: (payload) async {
@@ -152,7 +149,7 @@ void main() async {
     print(e.toString());
   }
   runApp(MultiProvider(providers: [
-     ChangeNotifierProvider(create: (_) => ImageProviderClass()),
+    ChangeNotifierProvider(create: (_) => ImageProviderClass()),
   ], child: const MyApp()));
 }
 
@@ -176,12 +173,11 @@ Future<void> _showNotification(RemoteMessage message) async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const GetMaterialApp(
+    return GetMaterialApp(
+      // initialBinding: GetXBindings(),
       debugShowCheckedModeBanner: false,
       home: Splash(),
     );

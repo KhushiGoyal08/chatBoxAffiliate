@@ -1,10 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:info_popup/info_popup.dart';
 import 'package:intl/intl.dart';
+import 'package:omd/controller/deleteCOntroller.dart';
 
 import 'package:omd/edit_post.dart';
 import 'package:omd/edit_profile.dart';
@@ -13,6 +15,7 @@ import 'package:omd/other_profile.dart';
 import 'package:omd/services/api_service.dart';
 import 'package:omd/services/chat_service.dart';
 import 'package:omd/settings.dart';
+import 'package:omd/show_complete_post.dart';
 import 'package:omd/sign_ups.dart';
 import 'package:omd/widgets/button.dart';
 import 'package:omd/widgets/utils.dart';
@@ -26,9 +29,7 @@ import 'controller/reportController.dart';
 import 'model/reportModel.dart';
 
 class Posts extends StatefulWidget {
-  const Posts({
-    Key? key,
-  }) : super(key: key);
+  Posts({Key? key}) : super(key: key);
   @override
   State<Posts> createState() => _PostsState();
 }
@@ -40,6 +41,9 @@ class _PostsState extends State<Posts> {
   String? email;
   String? userProfileImage;
   String? flag;
+  String? mobile;
+  bool? isSuspended;
+  bool? isEmailVerified;
   final ReportModel reportData =
       ReportModel(reportedId: '', reporterId: '', reason: '');
   final ReportController reportController = Get.put(ReportController());
@@ -52,7 +56,7 @@ class _PostsState extends State<Posts> {
   int postsPerPage = 100; // Adjust the number of posts per page as needed
   int currentPage = 1;
   ScrollController _scrollController = ScrollController();
-
+  final deleteController = Get.put(DeleteController());
   void _showImagePreview(BuildContext context, String imageUrl) {
     Navigator.push(
       context,
@@ -70,7 +74,8 @@ class _PostsState extends State<Posts> {
     email = prefs.getString('email');
     userProfileImage = prefs.getString('profileImageUrl') ?? '';
     flag = prefs.getString('flag') ?? '';
-
+    mobile = prefs.getString('mobileNumber');
+    getUserData();
     setState(() {}); // Trigger a rebuild to update the UI with the fetched data
   }
 
@@ -238,15 +243,22 @@ class _PostsState extends State<Posts> {
   Future<void> _handleRefresh() async {
     // You can implement your logic to refresh the posts here
     // For example, call _loadPosts() to fetch new data
+    deleteController.updateDataAfterDelay(mobile!);
     _loadPosts();
+  }
+
+  Future<void> getUserData() async {
+    final user = await deleteController.getUserByPhoneNumber(mobile!);
+    isEmailVerified = user.user.isEmailVerified;
+    isSuspended = user.user.isSuspended;
+    setState(() {});
   }
 
   @override
   void initState() {
-    super.initState();
     _fetchUserData();
-
     _loadPosts();
+    super.initState();
   }
 
   @override
@@ -373,359 +385,418 @@ class _PostsState extends State<Posts> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              ListTile(
-                                                  leading: CircleAvatar(
-                                                    radius: 30,
-                                                    backgroundImage: (post
-                                                                    .profileImageUrl !=
-                                                                null &&
-                                                            post.profileImageUrl
-                                                                .isNotEmpty)
-                                                        ? NetworkImage(post
-                                                                .profileImageUrl)
-                                                            as ImageProvider
-                                                        : AssetImage(
-                                                            'assets/account.png'),
-                                                  ),
-                                                  trailing:
-                                                      PopupMenuButton<String>(
-                                                    onSelected: (choice) async {
-                                                      if (choice == 'Chat'){
-                                                        if (userId!.isEmpty||userId==null) {
-                                                          Utils().toastMessage(
-                                                              context,
-                                                              "Please Sign Up",
-                                                              Colors.red);
-
-                                                          Navigator.push(
-                                                              context,
-                                                              MaterialPageRoute(
-                                                                  builder:
-                                                                      (context) =>
-                                                                          Sign_Up()));
-                                                        }
-                                                        else if(firstName!.isEmpty||lastName!.isEmpty||email!.isEmpty){
-                                                          Utils().toastMessage(
-                                                              context,
-                                                              "Please fill name and email",
-                                                              Colors.red);
-
-                                                          Navigator.push(
-                                                              context,
-                                                              MaterialPageRoute(
-                                                                  builder:
-                                                                      (context) =>
-                                                                      Edit_Pro()));
-                                                        }
-                                                        else {
-                                                          if (userId! ==
-                                                              post.userId) {
+                                              GestureDetector(
+                                                child: ListTile(
+                                                    leading: CircleAvatar(
+                                                      radius: 30,
+                                                      backgroundImage: (post
+                                                                      .profileImageUrl !=
+                                                                  null &&
+                                                              post.profileImageUrl
+                                                                  .isNotEmpty)
+                                                          ? NetworkImage(post
+                                                                  .profileImageUrl)
+                                                              as ImageProvider
+                                                          : AssetImage(
+                                                              'assets/account.png'),
+                                                    ),
+                                                    trailing:
+                                                        PopupMenuButton<String>(
+                                                      onSelected:
+                                                          (choice) async {
+                                                        if (choice == 'Chat') {
+                                                          if (isSuspended!) {
                                                             Utils().toastMessage(
                                                                 context,
-                                                                "You cannot chat with yourself",
+                                                                "Your Account Has Suspended",
                                                                 Colors.red);
-                                                          } else if (userId! ==
-                                                              '658c582ff1bc8978d2300823') {
-                                                            String chatRoomId =
-                                                                await ChatService()
-                                                                    .getChatRoomId(
-                                                              userId!,
-                                                              // Replace with the service provider's user ID
-                                                              post.userId,
-                                                            );
-                                                            print(chatRoomId);
-                                                            Navigator.push(
-                                                                context,
-                                                                MaterialPageRoute(
-                                                                    builder:
-                                                                        (context) =>
+                                                          } else {
+                                                            if (userId!
+                                                                    .isEmpty &&
+                                                                userId ==
+                                                                    null) {
+                                                              Utils().toastMessage(
+                                                                  context,
+                                                                  "Please Sign Up",
+                                                                  Colors.red);
+
+                                                              Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                      builder:
+                                                                          (context) =>
+                                                                              Sign_Up()));
+                                                            } else if (firstName!
+                                                                    .isEmpty ||
+                                                                lastName!
+                                                                    .isEmpty ||
+                                                                email!
+                                                                    .isEmpty) {
+                                                              Utils().toastMessage(
+                                                                  context,
+                                                                  "Please fill name and email",
+                                                                  Colors.red);
+
+                                                              Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                      builder:
+                                                                          (context) =>
+                                                                              Edit_Pro()));
+                                                            } else {
+                                                              if (userId! ==
+                                                                  post.userId) {
+                                                                Utils().toastMessage(
+                                                                    context,
+                                                                    "You cannot chat with yourself",
+                                                                    Colors.red);
+                                                              } else if (userId! ==
+                                                                  '658c582ff1bc8978d2300823') {
+                                                                String
+                                                                    chatRoomId =
+                                                                    await ChatService()
+                                                                        .getChatRoomId(
+                                                                  userId!,
+                                                                  // Replace with the service provider's user ID
+                                                                  post.userId,
+                                                                );
+                                                                print(
+                                                                    chatRoomId);
+                                                                Navigator.push(
+                                                                    context,
+                                                                    MaterialPageRoute(
+                                                                        builder: (context) =>
                                                                             AdminChatPage(
                                                                               chatRoomId: chatRoomId,
                                                                               receiverId: post.userId,
                                                                             )));
-                                                          } else {
-                                                            print("Hello");
-                                                            String chatRoomId =
-                                                                await ChatService()
-                                                                    .getChatRoomId(
-                                                              userId!,
-                                                              // Replace with the service provider's user ID
-                                                              post.userId,
-                                                            );
-                                                            print(chatRoomId);
-                                                            Navigator.push(
-                                                                context,
-                                                                MaterialPageRoute(
-                                                                    builder:
-                                                                        (context) =>
+                                                              } else {
+                                                                print("Hello");
+                                                                String
+                                                                    chatRoomId =
+                                                                    await ChatService()
+                                                                        .getChatRoomId(
+                                                                  userId!,
+                                                                  // Replace with the service provider's user ID
+                                                                  post.userId,
+                                                                );
+                                                                print(
+                                                                    chatRoomId);
+                                                                Navigator.push(
+                                                                    context,
+                                                                    MaterialPageRoute(
+                                                                        builder: (context) =>
                                                                             ChatPage(
                                                                               chatRoomId: chatRoomId,
                                                                               receiverId: post.userId,
                                                                             )));
+                                                              }
+                                                            }
+                                                          }
+                                                        } else if (choice ==
+                                                            'Report') {
+                                                          if (isSuspended!) {
+                                                            Utils().toastMessage(
+                                                                context,
+                                                                "Your Account Has Suspended",
+                                                                Colors
+                                                                    .redAccent);
+                                                          } else {
+                                                            if (userId!
+                                                                    .isEmpty ||
+                                                                userId ==
+                                                                    null) {
+                                                              Utils().toastMessage(
+                                                                  context,
+                                                                  "Please fill your name and email",
+                                                                  Colors
+                                                                      .redAccent);
+                                                              Get.to(() =>
+                                                                  Sign_Up());
+                                                            } else {
+                                                              showDialog(
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (BuildContext
+                                                                          context) {
+                                                                    return Dialog(
+                                                                      backgroundColor:
+                                                                          Colors
+                                                                              .white,
+                                                                      child:
+                                                                          Container(
+                                                                        height: MediaQuery.of(context).size.height *
+                                                                            0.35,
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              20),
+                                                                          child:
+                                                                              Column(
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.spaceEvenly,
+                                                                            children: [
+                                                                              Text(
+                                                                                "Reason To Report",
+                                                                                textAlign: TextAlign.center,
+                                                                                style: TextStyle(color: Colors.black, fontFamily: 'Montserrat', fontSize: 24, fontWeight: FontWeight.bold),
+                                                                              ),
+                                                                              Icon(Icons.report, color: Colors.redAccent, size: MediaQuery.of(context).size.height * 0.07),
+                                                                              TextFormField(
+                                                                                onChanged: (val) {
+                                                                                  reportData.reason = val;
+                                                                                },
+                                                                              ),
+                                                                              ElevatedButton(
+                                                                                  onPressed: () {
+                                                                                    if (userId! == post.userId) {
+                                                                                      Utils().toastMessage(context, "You cannot Report Yourself", Colors.red);
+                                                                                    } else {
+                                                                                      if (reportData.reason != '' && reportData.reason.isNotEmpty) {
+                                                                                        reportController.reportUser(userId!, post.userId, reportData.reason);
+                                                                                        print(reportData.reason);
+                                                                                        Navigator.pop(context);
+                                                                                      } else {
+                                                                                        Utils().toastMessage(context, "Please Report Something", Colors.red);
+                                                                                      }
+                                                                                    }
+                                                                                  },
+                                                                                  style: ElevatedButton.styleFrom(
+                                                                                    backgroundColor: Color(0xff102E44),
+                                                                                  ),
+                                                                                  child: Text(
+                                                                                    "Report User",
+                                                                                    style: TextStyle(
+                                                                                      color: Color.fromRGBO(255, 255, 255, 1),
+                                                                                      fontFamily: 'Montserrat',
+                                                                                      fontSize: 17,
+                                                                                    ),
+                                                                                  ))
+                                                                              // Button(onPressed: (){
+                                                                              //
+                                                                              // }, icon: Icon(Icons.check_circle,color: Colors.white,), text: "Yes,I agree")
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  });
+                                                            }
                                                           }
                                                         }
-                                                      } else if (choice ==
-                                                          'Report') {
+                                                      },
+                                                      itemBuilder: (BuildContext
+                                                          context) {
+                                                        List<
+                                                                PopupMenuEntry<
+                                                                    String>>
+                                                            menuItems = [
+                                                          const PopupMenuItem<
+                                                              String>(
+                                                            value: 'Chat',
+                                                            child: Text('Chat'),
+                                                          ),
+                                                          const PopupMenuItem<
+                                                              String>(
+                                                            value: 'Report',
+                                                            child:
+                                                                Text('Report'),
+                                                          ),
+                                                        ];
 
-                                                        if(userId!.isEmpty||userId==null){
-                                                          Utils().toastMessage(context, "Please fill your name and email", Colors.redAccent);
-                                                          Get.to(()=>Sign_Up());
-                                                        }else{
-                                                          showDialog(
-                                                              context: context,
-                                                              builder:
-                                                                  (BuildContext
-                                                              context) {
-                                                                return Dialog(
-                                                                  backgroundColor:
-                                                                  Colors
-                                                                      .white,
-                                                                  child:
-                                                                  Container(
-                                                                    height: MediaQuery.of(
-                                                                        context)
-                                                                        .size
-                                                                        .height *
-                                                                        0.35,
-                                                                    child:
-                                                                    Padding(
-                                                                      padding:
-                                                                      const EdgeInsets
-                                                                          .all(
-                                                                          20),
-                                                                      child:
-                                                                      Column(
-                                                                        mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .spaceEvenly,
-                                                                        children: [
-                                                                          Text(
-                                                                            "Reason To Report",
-                                                                            textAlign:
-                                                                            TextAlign.center,
-                                                                            style: TextStyle(
-                                                                                color: Colors.black,
-                                                                                fontFamily: 'Montserrat',
-                                                                                fontSize: 24,
-                                                                                fontWeight: FontWeight.bold),
-                                                                          ),
-                                                                          Icon(
-                                                                              Icons
-                                                                                  .report,
-                                                                              color:
-                                                                              Colors.redAccent,
-                                                                              size: MediaQuery.of(context).size.height * 0.07),
-                                                                          TextFormField(
-                                                                            onChanged:
-                                                                                (val) {
-                                                                              reportData.reason =
-                                                                                  val;
-                                                                            },
-                                                                          ),
-                                                                          ElevatedButton(
-                                                                              onPressed:
-                                                                                  () {
+                                                        // Add the 'Bump up' option only if the post is 2 days old
 
-                                                                                if (userId! == post.userId) {
-                                                                                  Utils().toastMessage(context, "You cannot Report Yourself", Colors.red);
-                                                                                } else {
-                                                                                  if(reportData.reason!='' && reportData.reason.isNotEmpty){
-                                                                                    reportController.reportUser(userId!, post.userId, reportData.reason);
-                                                                                    print(reportData.reason);
-                                                                                    Navigator.pop(context);
-                                                                                  }
-                                                                                  else{
-                                                                                    Utils().toastMessage(
-                                                                                        context,
-                                                                                        "Please Report Something",
-                                                                                        Colors.red);
-                                                                                  }
-                                                                                }
-
-                                                                              },
-                                                                              style:
-                                                                              ElevatedButton.styleFrom(
-                                                                                backgroundColor: Color(0xff102E44),
-                                                                              ),
-                                                                              child: Text(
-                                                                                "Report User",
-                                                                                style: TextStyle(
-                                                                                  color: Color.fromRGBO(255, 255, 255, 1),
-                                                                                  fontFamily: 'Montserrat',
-                                                                                  fontSize: 17,
-                                                                                ),
-                                                                              ))
-                                                                          // Button(onPressed: (){
-                                                                          //
-                                                                          // }, icon: Icon(Icons.check_circle,color: Colors.white,), text: "Yes,I agree")
-                                                                        ],
-                                                                      ),
-                                                                    ),
+                                                        return menuItems;
+                                                      },
+                                                    ),
+                                                    title: GestureDetector(
+                                                      onTap: () async {
+                                                        if (userId == null) {
+                                                        } else {
+                                                          if (isSuspended!) {
+                                                          } else {
+                                                            bool
+                                                                isRequestAccepted =
+                                                                await ChatService()
+                                                                    .checkIsRequestedAccepted(
+                                                                        post.userId,
+                                                                        userId!);
+                                                            if (isRequestAccepted) {
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          OtherProfile(
+                                                                    userId: post
+                                                                        .userId,
                                                                   ),
-                                                                );
-                                                              });
+                                                                ),
+                                                              );
+                                                            } else {
+                                                              // Show a message indicating that the user has not accepted your request yet
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          NotAcceptedProfile(
+                                                                    otherUserId:
+                                                                        post.userId,
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            }
+                                                          }
                                                         }
-
-                                                      }
-                                                    },
-                                                    itemBuilder:
-                                                        (BuildContext context) {
-                                                      List<
-                                                              PopupMenuEntry<
-                                                                  String>>
-                                                          menuItems = [
-                                                        const PopupMenuItem<
-                                                            String>(
-                                                          value: 'Chat',
-                                                          child:
-                                                              Text('Chat'),
-                                                        ),
-                                                        const PopupMenuItem<
-                                                            String>(
-                                                          value: 'Report',
-                                                          child: Text('Report'),
-                                                        ),
-                                                      ];
-
-                                                      // Add the 'Bump up' option only if the post is 2 days old
-
-                                                      return menuItems;
-                                                    },
-                                                  ),
-                                                  title: GestureDetector(
-                                                    onTap: () async {
-                                                      bool isRequestAccepted =
-                                                          await ChatService()
-                                                              .checkIsRequestedAccepted(
-                                                                  post.userId,
-                                                                  userId!);
-                                                      if (isRequestAccepted) {
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                OtherProfile(
-                                                              userId:
-                                                                  post.userId,
+                                                      },
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(
+                                                                bottom: 8.0),
+                                                        child: Row(
+                                                          children: [
+                                                            Flexible(
+                                                                child: Text(post
+                                                                    .userName)),
+                                                            SizedBox(
+                                                              width: 8,
                                                             ),
-                                                          ),
-                                                        );
-                                                      } else {
-                                                        // Show a message indicating that the user has not accepted your request yet
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                NotAcceptedProfile(
-                                                              otherUserId:
-                                                                  post.userId,
+                                                            // ((isEmailVerified != null &&
+                                                            //             post.userId ==
+                                                            //                 userId &&
+                                                            //             isEmailVerified ==
+                                                            //                 true) &&
+                                                            //         (userId !=
+                                                            //             null))
+                                                            (post
+                                                                    .isEmailVerified!)
+                                                                ? const InfoPopupWidget(
+                                                                    contentTitle:
+                                                                        "Email and Phone Number is Verified .",
+                                                                    child: Icon(
+                                                                      Icons
+                                                                          .check_circle,
+                                                                      color: Colors
+                                                                          .green,
+                                                                      size: 16,
+                                                                    ),
+                                                                  )
+                                                                : SizedBox
+                                                                    .shrink(),
+                                                            SizedBox(
+                                                              width: 8,
                                                             ),
-                                                          ),
-                                                        );
-                                                      }
-                                                    },
-                                                    child: Text.rich(
-                                                      TextSpan(
-                                                        children: [
-                                                          TextSpan(
-                                                              text: post
-                                                                  .userName),
-                                                          TextSpan(
-                                                            text: '\t\t',
-                                                            style: TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                          ),
-                                                          TextSpan(
-                                                            text: post.flag,
-                                                            style: TextStyle(
-                                                                fontSize: 18),
-                                                          ),
-                                                        ],
+                                                            Text(
+                                                              post.flag,
+                                                              style:
+                                                                  const TextStyle(
+                                                                      fontSize:
+                                                                          18),
+                                                            ),
+                                                          ],
+                                                        ),
                                                       ),
                                                     ),
-                                                  )),
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 20,
-                                                  right: 20,
-                                                  top: 10
-                                                ),
-                                                child: Text(
-                                                  post.postContent,
-                                                  textAlign: TextAlign.left,
-                                                  style: GoogleFonts.poppins(
-                                                    textStyle: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w400,
-                                                      fontSize: 12,
-                                                      color: Color(0xff5A5A5A),
-                                                      height: 1.8,
-                                                    ),
-                                                  ),
+                                                    subtitle:
+                                                        (post.tag != 'blank')
+                                                            ? Row(
+                                                                children: [
+                                                                  Container(
+                                                                      decoration: BoxDecoration(
+                                                                          color: (post.tag == 'buy')
+                                                                              ? Colors
+                                                                                  .green
+                                                                              : Colors
+                                                                                  .redAccent,
+                                                                          borderRadius: BorderRadius.circular(
+                                                                              5)),
+                                                                      padding: EdgeInsets.symmetric(
+                                                                          horizontal:
+                                                                              16,
+                                                                          vertical:
+                                                                              4),
+                                                                      child: (post.tag ==
+                                                                              'buy')
+                                                                          ? Text(
+                                                                              "Buyer",
+                                                                              style: GoogleFonts.poppins(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
+                                                                            )
+                                                                          : Text(
+                                                                              "Seller",
+                                                                              style: GoogleFonts.poppins(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
+                                                                            )),
+                                                                ],
+                                                              )
+                                                            : SizedBox
+                                                                .shrink()),
+                                              ),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  Get.to(() => ShowCompletePost(
+                                                        imageUrl: post
+                                                            .profileImageUrl,
+                                                        title: post.userName,
+                                                        description:
+                                                            post.postContent,
+                                                        postImage:
+                                                            post.postMediaUrl,
+                                                        tag: post.tag,
+                                                      ));
+                                                },
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 20,
+                                                          right: 20,
+                                                          top: 10),
+                                                  child: (post.postContent
+                                                              .length >
+                                                          70)
+                                                      ? Text(
+                                                          post.postContent
+                                                                  .substring(
+                                                                      0, 72) +
+                                                              "......",
+                                                          textAlign:
+                                                              TextAlign.left,
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                              fontSize: 12,
+                                                              color: Color(
+                                                                  0xff5A5A5A),
+                                                              height: 1.8,
+                                                            ),
+                                                          ),
+                                                        )
+                                                      : Text(
+                                                          post.postContent,
+                                                          textAlign:
+                                                              TextAlign.left,
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                              fontSize: 12,
+                                                              color: Color(
+                                                                  0xff5A5A5A),
+                                                              height: 1.8,
+                                                            ),
+                                                          ),
+                                                        ),
                                                 ),
                                               ),
-                                              if (post.postMediaUrl != null &&
-                                                  post.postMediaUrl
-                                                      .isNotEmpty) ...{
-                                                Padding(
-                                                  padding: EdgeInsets.all(10),
-                                                  child: GestureDetector(
-                                                    onTap: () {
-                                                      _showImagePreview(context,
-                                                          post.postMediaUrl);
-                                                    },
-                                                    child: Container(
-                                                      margin: const EdgeInsets
-                                                          .symmetric(
-                                                          vertical: 10),
-                                                      height: 200,
-                                                      decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8),
-                                                      ),
-                                                      child: Stack(
-                                                        children: [
-                                                          Image.network(
-                                                            post.postMediaUrl,
-                                                            fit: BoxFit.cover,
-                                                            width:
-                                                                double.infinity,
-                                                            height:
-                                                                double.infinity,
-                                                            loadingBuilder:
-                                                                (BuildContext
-                                                                        context,
-                                                                    Widget
-                                                                        child,
-                                                                    ImageChunkEvent?
-                                                                        loadingProgress) {
-                                                              if (loadingProgress ==
-                                                                  null) {
-                                                                return child;
-                                                              } else {
-                                                                return Center(
-                                                                  child:
-                                                                      CircularProgressIndicator(
-                                                                    value: loadingProgress.expectedTotalBytes !=
-                                                                            null
-                                                                        ? loadingProgress.cumulativeBytesLoaded /
-                                                                            (loadingProgress.expectedTotalBytes ??
-                                                                                1)
-                                                                        : null,
-                                                                  ),
-                                                                );
-                                                              }
-                                                            },
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              },
                                               SizedBox(
                                                 height: 10,
                                               ),
@@ -797,15 +868,23 @@ class _PostsState extends State<Posts> {
                                               trailing: PopupMenuButton<String>(
                                                 onSelected: (choice) {
                                                   if (choice == 'Edit') {
-                                                    Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder:
-                                                                (context) =>
-                                                                    EditWPost(
-                                                                      post:
-                                                                          post,
-                                                                    )));
+                                                    if (isSuspended! &&
+                                                        userId != null) {
+                                                      Utils().toastMessage(
+                                                          context,
+                                                          "Your Account Has Suspended",
+                                                          Colors.redAccent);
+                                                    } else {
+                                                      Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                              builder:
+                                                                  (context) =>
+                                                                      EditWPost(
+                                                                        post:
+                                                                            post,
+                                                                      )));
+                                                    }
                                                   } else if (choice ==
                                                       'Delete') {
                                                     _deletePost(
@@ -882,83 +961,66 @@ class _PostsState extends State<Posts> {
                                                             Color(0xff919191))),
                                               ),
                                             ),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  left: 20, right: 20),
-                                              child: Text(
-                                                post.postContent,
-                                                style: GoogleFonts.poppins(
-                                                    textStyle: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        fontSize: 12,
-                                                        color:
-                                                            Color(0xff5A5A5A),
-                                                        height: 1.8)),
+                                            GestureDetector(
+                                              onTap: () {
+                                                Get.to(() => ShowCompletePost(
+                                                      imageUrl:
+                                                          post.profileImageUrl,
+                                                      title: post.userName,
+                                                      description:
+                                                          post.postContent,
+                                                      postImage:
+                                                          post.postMediaUrl,
+                                                      tag: post.tag,
+                                                    ));
+                                              },
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 20,
+                                                    right: 20,
+                                                    top: 10),
+                                                child: (post.postContent
+                                                            .length >
+                                                        70)
+                                                    ? Text(
+                                                        post.postContent
+                                                                .substring(
+                                                                    0, 72) +
+                                                            "......",
+                                                        textAlign:
+                                                            TextAlign.left,
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          textStyle:
+                                                              const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            fontSize: 12,
+                                                            color: Color(
+                                                                0xff5A5A5A),
+                                                            height: 1.8,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : Text(
+                                                        post.postContent,
+                                                        textAlign:
+                                                            TextAlign.left,
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          textStyle:
+                                                              const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            fontSize: 12,
+                                                            color: Color(
+                                                                0xff5A5A5A),
+                                                            height: 1.8,
+                                                          ),
+                                                        ),
+                                                      ),
                                               ),
                                             ),
-                                            if (post.postMediaUrl != null &&
-                                                post.postMediaUrl
-                                                    .isNotEmpty) ...{
-                                              Padding(
-                                                padding: EdgeInsets.all(10),
-                                                child: GestureDetector(
-                                                  onTap: () {
-                                                    _showImagePreview(context,
-                                                        post.postMediaUrl);
-                                                  },
-                                                  child: Container(
-                                                    margin: const EdgeInsets
-                                                        .symmetric(
-                                                        vertical: 10),
-                                                    height:
-                                                        200, // Adjust the height based on your design
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                    child: Stack(
-                                                      children: [
-                                                        Image.network(
-                                                          post.postMediaUrl,
-                                                          fit: BoxFit.cover,
-                                                          width:
-                                                              double.infinity,
-                                                          height:
-                                                              double.infinity,
-                                                          loadingBuilder:
-                                                              (BuildContext
-                                                                      context,
-                                                                  Widget child,
-                                                                  ImageChunkEvent?
-                                                                      loadingProgress) {
-                                                            if (loadingProgress ==
-                                                                null) {
-                                                              return child;
-                                                            } else {
-                                                              return Center(
-                                                                child:
-                                                                    CircularProgressIndicator(
-                                                                  value: loadingProgress
-                                                                              .expectedTotalBytes !=
-                                                                          null
-                                                                      ? loadingProgress
-                                                                              .cumulativeBytesLoaded /
-                                                                          (loadingProgress.expectedTotalBytes ??
-                                                                              1)
-                                                                      : null,
-                                                                ),
-                                                              );
-                                                            }
-                                                          },
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              )
-                                            },
                                             SizedBox(
                                               height: 10,
                                             ),

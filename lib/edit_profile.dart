@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:email_otp/email_otp.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +19,8 @@ import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'controller/deleteCOntroller.dart';
+
 class Edit_Pro extends StatefulWidget {
   static String verify = '';
   Edit_Pro({
@@ -32,6 +33,7 @@ class Edit_Pro extends StatefulWidget {
 
 class _Edit_ProState extends State<Edit_Pro> {
   GlobalKey<_Edit_ProState> editProKey = GlobalKey<_Edit_ProState>();
+  final deleteController = Get.put(DeleteController());
   TextEditingController firstName = TextEditingController();
   TextEditingController lastName = TextEditingController();
   TextEditingController email = TextEditingController();
@@ -52,10 +54,11 @@ class _Edit_ProState extends State<Edit_Pro> {
   File? _image;
   String? otpCode;
   XFile? _selectImage;
-  bool isPhoneVerified=false;
+  bool isPhoneVerified = false;
   final picker = ImagePicker();
   bool isLoading = false;
   bool _imageSelected = false;
+  String? localEmail;
   EmailOTP myauth = EmailOTP();
   Future imagePickerFromGallery() async {
     _selectImage = (await picker.pickImage(source: ImageSource.gallery))!;
@@ -120,8 +123,6 @@ class _Edit_ProState extends State<Edit_Pro> {
       }
     }
   }
-
-
 
   Future<void> _downloadImage() async {
     if (profileImage != null) {
@@ -214,8 +215,6 @@ class _Edit_ProState extends State<Edit_Pro> {
     }
   }
 
-
-
   Future<void> _getUserDataFromSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -223,6 +222,7 @@ class _Edit_ProState extends State<Edit_Pro> {
       userId = prefs.getString('userId');
       firstName.text = prefs.getString('firstName') ?? '';
       lastName.text = prefs.getString('lastName') ?? '';
+      localEmail = prefs.getString('email');
       email.text = prefs.getString('email') ?? '';
       profileImage = prefs.getString('profileImageUrl');
       mobileNumber.text = prefs.getString('mobileNumber') ?? '';
@@ -359,9 +359,9 @@ class _Edit_ProState extends State<Edit_Pro> {
                         width: 320,
                         child: TextFormField(
                           controller: email,
-                          decoration:const  InputDecoration(
+                          decoration: const InputDecoration(
                             label: Text(' Email'),
-                            focusedBorder:  OutlineInputBorder(
+                            focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.black12),
                               borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(46),
@@ -401,29 +401,27 @@ class _Edit_ProState extends State<Edit_Pro> {
                       const SizedBox(
                         height: 20,
                       ),
-                         GestureDetector(
-                           onTap: (){
-                             Get.to(()=> UpdatePhoneNumber() );
-                           },
-                           child: Container(
-                            width: 320,
-                           decoration: BoxDecoration(
-                             borderRadius: BorderRadius.only(
-                               topLeft: Radius.circular(46),
-                               topRight: Radius.circular(46),
-                               bottomLeft: Radius.circular(46),
-                               bottomRight: Radius.circular(46),
-                             ),
-                             border:  Border.all(
-                             color: Colors.black12
-                             ),
-                           ),
-                           child: Padding(
-                             padding: const EdgeInsets.all(20),
-                             child: Text(mobileNumber.text),
-                           ),
-                           ),
-                         ),
+                      GestureDetector(
+                        onTap: () {
+                          Get.to(() => UpdatePhoneNumber());
+                        },
+                        child: Container(
+                          width: 320,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(46),
+                              topRight: Radius.circular(46),
+                              bottomLeft: Radius.circular(46),
+                              bottomRight: Radius.circular(46),
+                            ),
+                            border: Border.all(color: Colors.black12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Text(mobileNumber.text),
+                          ),
+                        ),
+                      ),
                       const SizedBox(
                         height: 20,
                       ),
@@ -500,6 +498,9 @@ class _Edit_ProState extends State<Edit_Pro> {
                               isLoading = false; // Set loading to false
                             });
                           } else {
+                            if (localEmail != email.text) {
+                              deleteController.SendEmailverify(false, userId!);
+                            }
                             final result = await ApiService()
                                 .registerAndUpdateProfile(
                                     userId: userId!,
@@ -507,7 +508,9 @@ class _Edit_ProState extends State<Edit_Pro> {
                                     firstName: firstName.text.trim(),
                                     lastName: lastName.text.trim(),
                                     email: email.text.trim(),
-                                    mobileNumber:(isPhoneVerified)? _countryCode!:mobileNumber.text,
+                                    mobileNumber: (isPhoneVerified)
+                                        ? _countryCode!
+                                        : mobileNumber.text,
                                     linkedIn: linkedin.text.trim(),
                                     skype: skype.text.trim(),
                                     telegram: telegram.text.trim(),

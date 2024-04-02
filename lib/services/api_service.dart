@@ -111,7 +111,6 @@ class ApiService {
     }
   }
 
-
   // verify user
 
   Future<Map<String, dynamic>> getUserById(String userId) async {
@@ -247,7 +246,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> addPost(String userId,
-      {String? postContent, File? postMedia}) async {
+      {String? postContent, File? postMedia, String? tag}) async {
     final String apiUrl = '$BASE_URL/api/posts/$userId/posts/add_post';
 
     try {
@@ -255,6 +254,9 @@ class ApiService {
 
       if (postContent != null) {
         request.fields['postContent'] = postContent;
+      }
+      if (tag != null) {
+        request.fields['tag'] = tag;
       }
 
       if (postMedia != null) {
@@ -266,12 +268,12 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = await response.stream.bytesToString();
+        print(data);
         return {'success': true, 'data': json.decode(data)};
       } else if (response.statusCode == 404) {
         final data = await response.stream.bytesToString();
         return {'success': false, 'message': json.decode(data)['message']};
-      }
-      else if (response.statusCode == 403) {
+      } else if (response.statusCode == 403) {
         final data = await response.stream.bytesToString();
         return {'success': false, 'message': json.decode(data)['message']};
       } else {
@@ -283,13 +285,14 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> editPost(
-      String postId, String newPostContent, File? newPostMedia) async {
+  Future<Map<String, dynamic>> editPost(String postId, String newPostContent,
+      File? newPostMedia, String tag) async {
     final String apiUrl = '$BASE_URL/api/posts/$postId/edit_post';
 
     try {
       var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
       request.fields['postContent'] = newPostContent;
+      request.fields['tag'] = tag;
 
       // If there's a new post media, add it to the request
       if (newPostMedia != null) {
@@ -530,27 +533,30 @@ class Post {
   final String postCreated;
   DateTime? createdTime;
   final String flag;
+  bool? isEmailVerified;
   DateTime? bumpTime;
+  final String tag;
 
   // Constructor
-  Post({
-    required this.id,
-    required this.userId,
-    required this.profileImageUrl,
-    required this.userName,
-    required this.postMediaUrl,
-    required this.postMediaType,
-    required this.postAwsBucketKey,
-    required this.postContent,
-    required this.isPinned,
-    this.createdTime,
-    required this.isbumped,
-    required this.isApproved,
-    required this.underApproval,
-    required this.postCreated,
-    required this.flag,
-    this.bumpTime,
-  }) {
+  Post(
+      {required this.id,
+      required this.userId,
+      required this.profileImageUrl,
+      required this.userName,
+      required this.postMediaUrl,
+      required this.postMediaType,
+      required this.postAwsBucketKey,
+      required this.postContent,
+      required this.isPinned,
+      this.createdTime,
+      this.isEmailVerified,
+      required this.isbumped,
+      required this.isApproved,
+      required this.underApproval,
+      required this.postCreated,
+      required this.flag,
+      this.bumpTime,
+      required this.tag}) {
     try {
       createdTime =
           DateFormat("EEE MMM dd yyyy HH:mm:ss 'GMT'z").parse(postCreated);
@@ -563,6 +569,7 @@ class Post {
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
       id: json['_id'],
+      tag: json['tag'] ?? "blank",
       userId: json['userId'] ?? "",
       profileImageUrl: json['profileImageUrl'] ?? "",
       userName: json['userName'] ?? "",
@@ -576,6 +583,7 @@ class Post {
       underApproval: json['underApproval'] ?? false,
       postCreated: json['PostCreated'] ?? "",
       flag: json['flag'] ?? "",
+      isEmailVerified: json['isEmailVerified'] ?? false,
       bumpTime:
           json['BumpTime'] != null ? DateTime.parse(json['BumpTime']) : null,
     );

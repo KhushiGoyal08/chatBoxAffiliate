@@ -71,7 +71,7 @@ class _NotAcceptedProfileState extends State<NotAcceptedProfile> {
           leading: GestureDetector(
             onTap: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const Home_Screen()));
+                  MaterialPageRoute(builder: (context) => Home_Screen()));
             },
             child: const Icon(
               Icons.arrow_back_ios_new_outlined,

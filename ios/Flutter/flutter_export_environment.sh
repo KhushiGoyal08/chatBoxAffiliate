@@ -1,7 +1,12 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
+<<<<<<< HEAD
 export "FLUTTER_ROOT=C:\Users\susha\Downloads\flutter_windows_3.13.9-stable\flutter"
 export "FLUTTER_APPLICATION_PATH=C:\Projects\chatBoxAffiliate"
+=======
+export "FLUTTER_ROOT=C:\src\flutter"
+export "FLUTTER_APPLICATION_PATH=E:\Walnut project\chatBoxAffiliate"
+>>>>>>> f10a04083180b1e53f20a745e8c43de5993cf49d
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"

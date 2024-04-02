@@ -147,7 +147,8 @@ class _SwiperDemoState extends State<SwiperDemo> {
           } else {
             return Swiper(
               duration: 300,
-              pagination: const SwiperPagination(
+              autoplay: true,
+              pagination: SwiperPagination(
                 builder: DotSwiperPaginationBuilder(
                     color: Color(0xffD2D2D2), activeColor: Color(0xff919191)),
                 margin: EdgeInsets.only(right: 35, top: 35),
@@ -159,10 +160,12 @@ class _SwiperDemoState extends State<SwiperDemo> {
                 return GestureDetector(
                   onTap: () {
                     Get.to(() => ShowCompletePost(
-                        imageUrl: data['profileImageUrl'] ?? '',
-                        title: data['userName'],
-                        description: data['postContent'],
-                        postImage: data['postMediaUrl']));
+                          imageUrl: data['profileImageUrl'] ?? '',
+                          title: data['userName'],
+                          description: data['postContent'],
+                          postImage: data['postMediaUrl'],
+                          tag: 'blank',
+                        ));
                   },
                   child: CustomContainer(
                     imageUrl: data['profileImageUrl'] ?? '',

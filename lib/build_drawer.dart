@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:omd/edit_profile.dart';
 import 'package:omd/msgs_requests.dart';
-import 'package:omd/chat_request.dart';
+import 'package:omd/pages/member_directory.dart';
 import 'package:omd/profile.dart';
 import 'package:omd/services/api_service.dart';
 import 'package:omd/services/chat_service.dart';
-import 'package:omd/settings.dart';
 import 'package:omd/sign_ups.dart';
 import 'package:omd/widgets/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +14,7 @@ import 'contact_admin.dart';
 import 'drawer_navigation.dart';
 import 'home.dart';
 
-Widget buildDrawer(BuildContext context) {
+Widget buildDrawer(BuildContext context, bool isSuspended) {
   return Drawer(
     child: FutureBuilder(
         future: getUserData(),
@@ -48,99 +46,130 @@ Widget buildDrawer(BuildContext context) {
                 ListTileWithNavigation(
                     icon: Icons.person,
                     text: 'PROFILE',
-                    onTap: () async{
-                      if (currentUserId!.isEmpty|| currentUserId==null) {
-                        Utils().toastMessage(context,
-                            "Please Sign Up", Colors.red);
-                        Get.to(() => Sign_Up());
-                      }else{
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) => Profile()));
+                    onTap: () async {
+                      if (isSuspended) {
+                        Utils().toastMessage(
+                            context, "Your Account Has Suspended", Colors.red);
+                      } else {
+                        if (currentUserId!.isEmpty || currentUserId == null) {
+                          Utils().toastMessage(
+                              context, "Please Sign Up", Colors.red);
+                          Get.offAll(() => Sign_Up());
+                        } else {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Profile()));
+                        }
                       }
-
-
-
                     }),
                 ListTileWithNavigation(
                     icon: Icons.chat,
                     text: 'CHATS',
                     onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => Msgs_Requests()));
-                    }),
-                ListTileWithNavigation(
-                  icon: Icons.mobile_friendly,
-                  text: 'CONTACT ADMIN',
-                  onTap: () async {
-                    if(currentUserId!.isEmpty || currentUserId==null){
-                      Utils().toastMessage(context,
-                          "Please Sign Up", Colors.red);
-                      Get.to(() => Sign_Up());
-                    }
-                  else  if (firstName!.isEmpty ||
-                        lastName!.isEmpty ||
-                        email!.isEmpty) {
-                      Utils().toastMessage(context,
-                          "Please fill your name and email", Colors.red);
-                      Get.to(() => Edit_Pro());
-                    }
-                    else {
-                      if (currentUserId == '658c582ff1bc8978d2300823') {
-                        Navigator.pop(context);
+                      if (isSuspended) {
                         Utils().toastMessage(context,
-                            'You cannot chat with yourself', Colors.red);
+                            'Your Account Has Suspended', Colors.redAccent);
                       } else {
-                        String chatRoomId = await ChatService().getChatRoomId(
-                          currentUserId!,
-                          // Replace with the service provider's user ID
-                          '658c582ff1bc8978d2300823',
-                        );
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => ContactAdmin(
-                                  chatRoomId: chatRoomId,
-                                  receiverId: '658c582ff1bc8978d2300823',
-                                )));
+                                builder: (context) => Msgs_Requests()));
                       }
-                    }
-                  },
-                ),
+                    }),
+                ListTileWithNavigation(
+                    icon: Icons.mobile_friendly,
+                    text: 'CONTACT ADMIN',
+                    onTap: () async {
+                      if (isSuspended) {
+                        Utils().toastMessage(context,
+                            'Your Account Has Suspended', Colors.redAccent);
+                      } else {
+                        if (currentUserId!.isEmpty || currentUserId == null) {
+                          Utils().toastMessage(
+                              context, "Please Sign Up", Colors.red);
+                          Get.offAll(() => Sign_Up());
+                        } else if (firstName!.isEmpty ||
+                            lastName!.isEmpty ||
+                            email!.isEmpty) {
+                          Utils().toastMessage(context,
+                              "Please fill your name and email", Colors.red);
+                          Get.offAll(() => Edit_Pro());
+                        } else {
+                          if (currentUserId == '658c582ff1bc8978d2300823') {
+                            Navigator.pop(context);
+                            Utils().toastMessage(context,
+                                'You cannot chat with yourself', Colors.red);
+                          } else {
+                            String chatRoomId =
+                                await ChatService().getChatRoomId(
+                              currentUserId!,
+                              // Replace with the service provider's user ID
+                              '658c582ff1bc8978d2300823',
+                            );
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ContactAdmin(
+                                          chatRoomId: chatRoomId,
+                                          receiverId:
+                                              '658c582ff1bc8978d2300823',
+                                        )));
+                          }
+                        }
+                      }
+                    }),
                 ListTileWithNavigation(
                     icon: Icons.settings,
                     text: 'PROFILE SETTINGS',
                     onTap: () {
-                      if(currentUserId!.isEmpty || currentUserId==null){
+                      if (isSuspended) {
                         Utils().toastMessage(context,
-                            "Please Sign Up", Colors.red);
-                        Get.to(() => Sign_Up());
+                            'Your Account Has Suspended', Colors.redAccent);
+                      } else {
+                        if (currentUserId!.isEmpty || currentUserId == null) {
+                          Utils().toastMessage(
+                              context, "Please Sign Up", Colors.red);
+                          Get.offAll(() => Sign_Up());
+                        } else {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Edit_Pro()));
+                        }
                       }
-                      else{
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) => Edit_Pro()));
+                    }),
+                ListTileWithNavigation(
+                    icon: Icons.person_pin_outlined,
+                    text: 'MEMBER DIRECTORY',
+                    onTap: () {
+                      if (isSuspended) {
+                        Utils().toastMessage(
+                            context, "Your Account Has Suspended", Colors.red);
+                      } else {
+                        Get.to(() => MemberDirectory());
                       }
-
                     }),
                 GestureDetector(
                   onTap: () async {
                     final tokenResult = await ApiService()
                         .updateUserToken(currentUserId!, '12434');
                     print("TokenResult: ${tokenResult}");
+
                     if (tokenResult['success']) {
                       clearUserData();
                       Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) => Sign_Up()),
-                              (route) => false);
+                          (route) => false);
                     }
-                    if(currentUserId!.isEmpty||currentUserId==null){
-                      Utils().toastMessage(context, "Please Sign Up", Colors.redAccent);
+                    if (currentUserId!.isEmpty || currentUserId == null) {
+                      Utils().toastMessage(
+                          context, "Please Sign Up", Colors.redAccent);
                       Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) => Sign_Up()),
-                              (route) => false);
+                          (route) => false);
                     }
                   },
                   child: Container(

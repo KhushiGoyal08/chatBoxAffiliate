@@ -9,13 +9,15 @@ class ShowCompletePost extends StatelessWidget {
   final String? title;
   final String? description;
   final String? postImage;
+  final String? tag;
 
   const ShowCompletePost(
       {super.key,
       required this.imageUrl,
       required this.title,
       required this.description,
-      required this.postImage});
+      required this.postImage,
+      required this.tag});
 
   void _showImagePreview(BuildContext context, String imageUrl) {
     Navigator.push(
@@ -56,9 +58,37 @@ class ShowCompletePost extends StatelessWidget {
                   ),
                   SizedBox(width: 10),
                   Text(title.toString(), style: TextStyle(fontSize: 16)),
+                  Spacer(),
+                  (tag != 'blank')
+                      ? Container(
+                          decoration: BoxDecoration(
+                              color: (tag == 'buy')
+                                  ? Colors.green
+                                  : Colors.redAccent,
+                              borderRadius: BorderRadius.circular(5)),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          child: (tag == 'buy')
+                              ? Text(
+                                  "Buyer",
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 10,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600),
+                                )
+                              : Text(
+                                  "Seller",
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 10,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600),
+                                ))
+                      : Container(),
                 ],
               ),
-              SizedBox(height: 10),
+
+              SizedBox(height: 16),
+
               GestureDetector(
                 child: Text(
                   description.toString(),
@@ -85,13 +115,11 @@ class ShowCompletePost extends StatelessWidget {
                           height: 200,
                           width: double.infinity,
                           child: CachedNetworkImage(
-                            imageUrl: postImage!,
-                            placeholder: (context, url) =>
-                                Center(child: CircularProgressIndicator()),
-                            errorWidget: (context, url, error) =>
-                                Icon(Icons.error),
-                            fit: BoxFit.cover,
-                          ),
+                              imageUrl: postImage!,
+                              placeholder: (context, url) =>
+                                  Center(child: CircularProgressIndicator()),
+                              errorWidget: (context, url, error) => Container(),
+                              fit: BoxFit.fill),
                         ),
                       ),
                     )

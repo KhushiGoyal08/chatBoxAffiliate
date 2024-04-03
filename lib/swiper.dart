@@ -159,8 +159,9 @@ class _SwiperDemoState extends State<SwiperDemo> {
                           title: data['userName'],
                           description: data['postContent'],
                           postImage: data['postMediaUrl'],
-                          tag: data['tag'],
-                          isEmailVerified: data['isEmailVerified'] ?? false,
+                          tag: data['postId']['tag'],
+                          isEmailVerified:
+                              data['postId']['isEmailVerified'] ?? false,
                         ));
                   },
                   child: Stack(

@@ -424,6 +424,7 @@ class ApiService {
 
         List<Map<String, dynamic>> pinnedPosts =
             List<Map<String, dynamic>>.from(data);
+        print("Pinned Post \n ${pinnedPosts}");
         return pinnedPosts;
       } else {
         throw Exception('Failed to load pinned posts');

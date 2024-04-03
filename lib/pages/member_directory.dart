@@ -85,10 +85,25 @@ class MemberDirectory extends StatelessWidget {
                                         style: GoogleFonts.poppins(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500)),
-                                    Text(user.lastName,
-                                        style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500)),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(user.flag),
+                                        SizedBox(
+                                          width: 2,
+                                        ),
+                                        Flexible(
+                                          child: Text(user.lastName,
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.poppins(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500)),
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ],

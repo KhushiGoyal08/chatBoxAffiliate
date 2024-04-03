@@ -745,6 +745,9 @@ class _PostsState extends State<Posts> {
                                                         postImage:
                                                             post.postMediaUrl,
                                                         tag: post.tag,
+                                                        isEmailVerified:
+                                                            post.isEmailVerified ??
+                                                                false,
                                                       ));
                                                 },
                                                 child: Padding(
@@ -972,6 +975,9 @@ class _PostsState extends State<Posts> {
                                                       postImage:
                                                           post.postMediaUrl,
                                                       tag: post.tag,
+                                                      isEmailVerified:
+                                                          post.isEmailVerified ??
+                                                              false,
                                                     ));
                                               },
                                               child: Padding(

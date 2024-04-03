@@ -361,6 +361,9 @@ class _MyPostState extends State<MyPost> {
                                       GestureDetector(
                                         onTap: () {
                                           Get.to(() => ShowCompletePost(
+                                                isEmailVerified:
+                                                    post.isEmailVerified ??
+                                                        false,
                                                 imageUrl: post.profileImageUrl,
                                                 title: post.userName,
                                                 description: post.postContent,

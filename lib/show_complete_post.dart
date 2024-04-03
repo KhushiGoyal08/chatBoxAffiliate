@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:info_popup/info_popup.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -10,11 +11,13 @@ class ShowCompletePost extends StatelessWidget {
   final String? description;
   final String? postImage;
   final String? tag;
+  final bool? isEmailVerified;
 
   const ShowCompletePost(
       {super.key,
       required this.imageUrl,
       required this.title,
+      required this.isEmailVerified,
       required this.description,
       required this.postImage,
       required this.tag});
@@ -58,6 +61,17 @@ class ShowCompletePost extends StatelessWidget {
                   ),
                   SizedBox(width: 10),
                   Text(title.toString(), style: TextStyle(fontSize: 16)),
+                  SizedBox(width: 10),
+                  (isEmailVerified! == true)
+                      ? const InfoPopupWidget(
+                          contentTitle: "Email and Phone Number is Verified .",
+                          child: Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 16,
+                          ),
+                        )
+                      : SizedBox.shrink(),
                   Spacer(),
                   (tag != 'blank')
                       ? Container(

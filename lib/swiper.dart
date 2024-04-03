@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_swiper_view/flutter_swiper_view.dart';
 import 'package:get/get.dart';
@@ -165,14 +166,28 @@ class _SwiperDemoState extends State<SwiperDemo> {
                           title: data['userName'],
                           description: data['postContent'],
                           postImage: data['postMediaUrl'],
-                          tag: 'blank',
+                          tag: data['tag'],
+                          isEmailVerified: data['isEmailVerified'] ?? false,
                         ));
                   },
-                  child: CustomContainer(
-                    imageUrl: data['profileImageUrl'] ?? '',
-                    title: data['userName'],
-                    description: data['postContent'],
-                    postImage: data['postMediaUrl'],
+                  child: Stack(
+                    children: [
+                      // Positioned(
+                      //   right: 20,
+                      //   top: 20,
+                      //   child: Row(
+                      //     children: List.generate(6, (i) {
+                      //       return circle(index, i);
+                      //     }).toList(),
+                      //   ),
+                      // ),
+                      CustomContainer(
+                        imageUrl: data['profileImageUrl'] ?? '',
+                        title: data['userName'],
+                        description: data['postContent'],
+                        postImage: data['postMediaUrl'],
+                      ),
+                    ],
                   ),
                 );
               },
@@ -183,5 +198,12 @@ class _SwiperDemoState extends State<SwiperDemo> {
         },
       ),
     );
+  }
+
+  Widget circle(int index, int i) {
+    return Icon(Icons.circle_sharp,
+        size: 16,
+        color:
+            (index == i || index > i) ? Color(0xff919191) : Color(0xffD2D2D2));
   }
 }

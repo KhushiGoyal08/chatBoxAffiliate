@@ -61,7 +61,7 @@ class PermissionGuestUser extends StatelessWidget {
                 onPressed: () {
                   Get.offAll(() => UpgradeAlert(child: Sign_Up()));
                 },
-                text: 'Sign Up',
+                text: 'Sign Up / Login',
               ),
             )
           ],

@@ -548,6 +548,9 @@ class _PostsState extends State<Posts> {
                                                                                 onChanged: (val) {
                                                                                   reportData.reason = val;
                                                                                 },
+                                                                                decoration: InputDecoration(
+                                                                                  hintText: 'Enter your reason here', // Placeholder text
+                                                                                ),
                                                                               ),
                                                                               ElevatedButton(
                                                                                   onPressed: () {

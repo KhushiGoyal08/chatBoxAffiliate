@@ -305,76 +305,91 @@ class _WPostState extends State<WPost> {
                 ),
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: ToggleButtons(
-                      selectedBorderColor: Colors.black,
-                      borderRadius: BorderRadius.circular(20),
-                      fillColor: Color(0xff1A1B23),
-                      isSelected: _isSelected,
-                      onPressed: (int index) async {
-                        tag = all_tag[index];
-                        SharedPreferences prefs =
-                            await SharedPreferences.getInstance();
-                        prefs.setString('tag', tag!);
-                        setState(() {
-                          // Toggle the state of the button at the given index
-
-                          _isSelected[index] = !_isSelected[index];
-                          // Update the state of other buttons
-                          for (int buttonIndex = 0;
-                              buttonIndex < _isSelected.length;
-                              buttonIndex++) {
-                            if (buttonIndex != index) {
-                              _isSelected[buttonIndex] = false;
-                            }
-                          }
-                        });
-                      },
+                    padding: const EdgeInsets.only(right: 20, top: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal:
-                                  MediaQuery.of(context).size.width * 0.1),
-                          child: Text(
-                            "Blank",
-                            style: GoogleFonts.poppins(
-                                textStyle: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
-                                    color: _isSelected[0]
-                                        ? Colors.white
-                                        : Color(0xff1A1B23))),
-                          ),
+                        Text(
+                          "Looking to",
+                          style: GoogleFonts.poppins(
+                              textStyle: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 15,
+                                  color: Color(0xff1A1B23))),
                         ),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal:
-                                  MediaQuery.of(context).size.width * 0.1),
-                          child: Text(
-                            "Buy",
-                            style: GoogleFonts.poppins(
-                                textStyle: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
-                                    color: _isSelected[1]
-                                        ? Colors.white
-                                        : Color(0xff1A1B23))),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal:
-                                  MediaQuery.of(context).size.width * 0.1),
-                          child: Text(
-                            "Sell",
-                            style: GoogleFonts.poppins(
-                                textStyle: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
-                                    color: _isSelected[2]
-                                        ? Colors.white
-                                        : Color(0xff1A1B23))),
-                          ),
+                        SizedBox(
+                            height:
+                                8), // Adding some space between "Looking to" and ToggleButtons
+                        ToggleButtons(
+                          selectedBorderColor: Colors.black,
+                          borderRadius: BorderRadius.circular(20),
+                          fillColor: Color(0xff1A1B23),
+                          isSelected: _isSelected,
+                          onPressed: (int index) async {
+                            tag = all_tag[index];
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            prefs.setString('tag', tag!);
+                            setState(() {
+                              // Toggle the state of the button at the given index
+                              _isSelected[index] = !_isSelected[index];
+                              // Update the state of other buttons
+                              for (int buttonIndex = 0;
+                                  buttonIndex < _isSelected.length;
+                                  buttonIndex++) {
+                                if (buttonIndex != index) {
+                                  _isSelected[buttonIndex] = false;
+                                }
+                              }
+                            });
+                          },
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal:
+                                      MediaQuery.of(context).size.width * 0.1),
+                              child: Text(
+                                "Blank",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: _isSelected[0]
+                                      ? Colors.white
+                                      : Color(0xff1A1B23),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal:
+                                      MediaQuery.of(context).size.width * 0.1),
+                              child: Text(
+                                "Buy",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: _isSelected[1]
+                                      ? Colors.white
+                                      : Color(0xff1A1B23),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal:
+                                      MediaQuery.of(context).size.width * 0.1),
+                              child: Text(
+                                "Sell",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: _isSelected[2]
+                                      ? Colors.white
+                                      : Color(0xff1A1B23),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

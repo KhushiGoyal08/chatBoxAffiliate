@@ -146,14 +146,15 @@ class _SwiperDemoState extends State<SwiperDemo> {
             );
           } else {
             return Swiper(
-              duration: 300,
+              duration: 600,
               autoplay: true,
-              pagination: SwiperPagination(
-                builder: DotSwiperPaginationBuilder(
-                    color: Color(0xffD2D2D2), activeColor: Color(0xff919191)),
-                margin: EdgeInsets.only(right: 35, top: 35),
-                alignment: Alignment.topRight,
-              ),
+              // pagination: SwiperPagination(
+              // builder:
+              // DotSwiperPaginationBuilder(
+              //     color: Color(0xffD2D2D2), activeColor: Color(0xff919191)),
+              // margin: EdgeInsets.only(right: 35, top: 35),
+              // alignment: Alignment.topRight,
+              // ),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 final data = snapshot.data![index];

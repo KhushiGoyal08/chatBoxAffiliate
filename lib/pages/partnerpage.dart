@@ -83,7 +83,7 @@ class PartnerPage extends StatelessWidget {
                       onPressed: () {
                         _launchURL(partner.link);
                       },
-                      child: Text("Get in Touch",
+                      child: Text(partner.btntext,
                           style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 16,

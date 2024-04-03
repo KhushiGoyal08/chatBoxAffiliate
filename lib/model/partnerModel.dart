@@ -24,6 +24,7 @@ class Allpartner {
   String logo;
   String description;
   String link;
+  String btntext;
   DateTime createdAt;
   DateTime updatedAt;
   int v;
@@ -33,6 +34,7 @@ class Allpartner {
     required this.logo,
     required this.description,
     required this.link,
+    required this.btntext,
     required this.createdAt,
     required this.updatedAt,
     required this.v,
@@ -43,6 +45,7 @@ class Allpartner {
         logo: json["logo"],
         description: json["description"],
         link: json["link"],
+        btntext: json["btntext"],
         createdAt: DateTime.parse(json["createdAt"]),
         updatedAt: DateTime.parse(json["updatedAt"]),
         v: json["__v"],
@@ -53,6 +56,7 @@ class Allpartner {
         "logo": logo,
         "description": description,
         "link": link,
+        "btntext": btntext,
         "createdAt": createdAt.toIso8601String(),
         "updatedAt": updatedAt.toIso8601String(),
         "__v": v,

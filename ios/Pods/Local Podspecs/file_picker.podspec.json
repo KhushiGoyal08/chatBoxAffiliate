@@ -26,5 +26,10 @@
   },
   "pod_target_xcconfig": {
     "GCC_PREPROCESSOR_DEFINITIONS": "PICKER_MEDIA=1 PICKER_AUDIO=1 PICKER_DOCUMENT=1"
+  },
+  "resource_bundles": {
+    "file_picker_ios_privacy": [
+      "Resources/PrivacyInfo.xcprivacy"
+    ]
   }
 }

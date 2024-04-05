@@ -1,6 +1,6 @@
 // !$*UTF8*$!
 {
-	archiveVersion = 1;
+	archiveVersion = 2;
 	classes = {
 	};
 	objectVersion = 54;
@@ -166,7 +166,7 @@
 				97A6518FDF07E97BB8FF2833 /* Pods-RunnerTests.release.xcconfig */,
 				4F0E1CFFB04F3F71FF5BE1B8 /* Pods-RunnerTests.profile.xcconfig */,
 			);
-			path = Pods;
+			name = pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

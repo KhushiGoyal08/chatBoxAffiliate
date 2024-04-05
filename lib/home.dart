@@ -8,6 +8,7 @@ import 'package:omd/msgs_requests.dart';
 import 'package:omd/pages/partnerpage.dart';
 import 'package:omd/search_screen.dart';
 import 'package:omd/services/chat_service.dart';
+import 'package:omd/pages/member_directory.dart';
 import 'package:omd/sign_ups.dart';
 import 'package:omd/swiper.dart';
 import 'package:omd/posts.dart';
@@ -224,8 +225,8 @@ class _Home_ScreenState extends State<Home_Screen> {
                     label: 'Home',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.mobile_screen_share_sharp),
-                    label: 'Contact Admin',
+                    icon: Icon(Icons.person_pin_outlined),
+                    label: 'Members',
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.handshake_outlined),
@@ -243,34 +244,37 @@ class _Home_ScreenState extends State<Home_Screen> {
                             context, "Please Sign Up", Colors.red);
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) => Sign_Up()));
-                      }
-                      if (firstName!.isEmpty ||
-                          lastName!.isEmpty ||
-                          email!.isEmpty) {
-                        Utils().toastMessage(context,
-                            "Please fill your name and email", Colors.red);
-                        Get.to(() => Edit_Pro());
                       } else {
-                        if (currentUserId == '658c582ff1bc8978d2300823') {
-                          Utils().toastMessage(context,
-                              'You cannot chat with yourself', Colors.red);
-                        } else {
-                          String chatRoomId = await ChatService().getChatRoomId(
-                            currentUserId!,
-                            '658c582ff1bc8978d2300823',
-                          );
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ContactAdmin(
-                                chatRoomId: chatRoomId,
-                                receiverId: '658c582ff1bc8978d2300823',
-                              ),
-                            ),
-                          );
-                        }
+                        // if (firstName!.isEmpty ||
+                        //     lastName!.isEmpty ||
+                        //     email!.isEmpty) {
+                        //   Utils().toastMessage(context,
+                        //       "Please fill your name and email", Colors.red);
+                        //   Get.to(() => Edit_Pro());
+                        // } else {
+                        // if (currentUserId == '658c582ff1bc8978d2300823') {
+                        //   Utils().toastMessage(context,
+                        //       'You cannot chat with yourself', Colors.red);
+                        // } else {
+                        // String chatRoomId = await ChatService().getChatRoomId(
+                        //   currentUserId!,
+                        //   '658c582ff1bc8978d2300823',
+                        // );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MemberDirectory(),
+
+                            // ContactAdmin(
+                            //   chatRoomId: chatRoomId,
+                            //   receiverId: '658c582ff1bc8978d2300823',
+                            // ),
+                          ),
+                        );
                       }
                     }
+                    // }
+                    // }
                   }
                   if (index == 2) {
                     if (isSuspended!) {

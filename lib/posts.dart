@@ -854,187 +854,199 @@ class _PostsState extends State<Posts> {
                                         int daysDifference = currentDate
                                             .difference(postCreationDate)
                                             .inDays;
-                                        return Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            ListTile(
-                                              leading: CircleAvatar(
-                                                radius: 30,
-                                                backgroundImage:
-                                                    userProfileImage == ''
-                                                        ? AssetImage(
-                                                            'assets/account.png',
-                                                          )
-                                                        : NetworkImage(
-                                                                userProfileImage ??
-                                                                    '')
-                                                            as ImageProvider,
-                                              ),
-                                              trailing: PopupMenuButton<String>(
-                                                onSelected: (choice) {
-                                                  if (choice == 'Edit') {
-                                                    if (isSuspended! &&
-                                                        userId != null) {
-                                                      Utils().toastMessage(
-                                                          context,
-                                                          "Your Account Has Suspended",
-                                                          Colors.redAccent);
-                                                    } else {
-                                                      Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                              builder:
-                                                                  (context) =>
-                                                                      EditWPost(
-                                                                        post:
-                                                                            post,
-                                                                      )));
-                                                    }
-                                                  } else if (choice ==
-                                                      'Delete') {
-                                                    _deletePost(
-                                                        post.id!, context);
-                                                  } else if (choice ==
-                                                      'Bump up') {
-                                                    if (daysDifference >= 1) {
-                                                      _bumpPost(
-                                                          post.id!, context);
-                                                    } else {
-                                                      Utils().toastMessage(
-                                                          context,
-                                                          "You can't bump the post before 24 hours",
-                                                          Colors.red);
-                                                    }
-                                                  }
-                                                },
-                                                itemBuilder:
-                                                    (BuildContext context) {
-                                                  List<PopupMenuEntry<String>>
-                                                      menuItems = [
-                                                    const PopupMenuItem<String>(
-                                                      value: 'Edit',
-                                                      child: Text('Edit'),
-                                                    ),
-                                                    const PopupMenuItem<String>(
-                                                      value: 'Delete',
-                                                      child: Text('Delete'),
-                                                    ),
-                                                    const PopupMenuItem<String>(
-                                                      value: 'Bump up',
-                                                      child: Text('Bump up'),
-                                                    ),
-                                                  ];
-
-                                                  // Add the 'Bump up' option only if the post is 2 days old
-
-                                                  return menuItems;
-                                                },
-                                              ),
-                                              title: Text.rich(
-                                                TextSpan(
-                                                  children: [
-                                                    TextSpan(
-                                                        text: post.userName),
-                                                    TextSpan(
-                                                      text: '\t\t',
-                                                      style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                    ),
-                                                    TextSpan(
-                                                      text: post.flag,
-                                                      style: TextStyle(
-                                                          fontSize: 18),
-                                                    ),
-                                                  ],
+                                        return Container(
+                                          margin: EdgeInsets.only(
+                                              bottom: 20), // Add margin bottom
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              ListTile(
+                                                leading: CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundImage:
+                                                      userProfileImage == ''
+                                                          ? AssetImage(
+                                                              'assets/account.png',
+                                                            )
+                                                          : NetworkImage(
+                                                                  userProfileImage ??
+                                                                      '')
+                                                              as ImageProvider,
                                                 ),
-
-                                                //  style: TextStyle(fontSize: 20,fontFamily: 'Poppins', fontWeight: FontWeight.w500),
-                                              ),
-                                              subtitle: Text(
-                                                post.isApproved
-                                                    ? "Status: Approved"
-                                                    : (post.underApproval
-                                                        ? "Status: Under Approval"
-                                                        : "Status: Disapproved"),
-                                                style: GoogleFonts.poppins(
-                                                    textStyle: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        fontSize: 12,
-                                                        color:
-                                                            Color(0xff919191))),
-                                              ),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                Get.to(() => ShowCompletePost(
-                                                      imageUrl:
-                                                          post.profileImageUrl,
-                                                      title: post.userName,
-                                                      description:
-                                                          post.postContent,
-                                                      postImage:
-                                                          post.postMediaUrl,
-                                                      tag: post.tag,
-                                                      isEmailVerified:
-                                                          post.isEmailVerified ??
-                                                              false,
-                                                    ));
-                                              },
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 20,
-                                                    right: 20,
-                                                    top: 10),
-                                                child: (post.postContent
-                                                            .length >
-                                                        70)
-                                                    ? Text(
-                                                        post.postContent
-                                                                .substring(
-                                                                    0, 72) +
-                                                            "......",
-                                                        textAlign:
-                                                            TextAlign.left,
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                          textStyle:
-                                                              const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            fontSize: 12,
-                                                            color: Color(
-                                                                0xff5A5A5A),
-                                                            height: 1.8,
-                                                          ),
-                                                        ),
-                                                      )
-                                                    : Text(
-                                                        post.postContent,
-                                                        textAlign:
-                                                            TextAlign.left,
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                          textStyle:
-                                                              const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            fontSize: 12,
-                                                            color: Color(
-                                                                0xff5A5A5A),
-                                                            height: 1.8,
-                                                          ),
-                                                        ),
+                                                trailing:
+                                                    PopupMenuButton<String>(
+                                                  onSelected: (choice) {
+                                                    if (choice == 'Edit') {
+                                                      if (isSuspended! &&
+                                                          userId != null) {
+                                                        Utils().toastMessage(
+                                                            context,
+                                                            "Your Account Has Suspended",
+                                                            Colors.redAccent);
+                                                      } else {
+                                                        Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                                builder:
+                                                                    (context) =>
+                                                                        EditWPost(
+                                                                          post:
+                                                                              post,
+                                                                        )));
+                                                      }
+                                                    } else if (choice ==
+                                                        'Delete') {
+                                                      _deletePost(
+                                                          post.id!, context);
+                                                    } else if (choice ==
+                                                        'Bump up') {
+                                                      if (daysDifference >= 1) {
+                                                        _bumpPost(
+                                                            post.id!, context);
+                                                      } else {
+                                                        Utils().toastMessage(
+                                                            context,
+                                                            "You can't bump the post before 24 hours",
+                                                            Colors.red);
+                                                      }
+                                                    }
+                                                  },
+                                                  itemBuilder:
+                                                      (BuildContext context) {
+                                                    List<PopupMenuEntry<String>>
+                                                        menuItems = [
+                                                      const PopupMenuItem<
+                                                          String>(
+                                                        value: 'Edit',
+                                                        child: Text('Edit'),
                                                       ),
+                                                      const PopupMenuItem<
+                                                          String>(
+                                                        value: 'Delete',
+                                                        child: Text('Delete'),
+                                                      ),
+                                                      const PopupMenuItem<
+                                                          String>(
+                                                        value: 'Bump up',
+                                                        child: Text('Bump up'),
+                                                      ),
+                                                    ];
+
+                                                    // Add the 'Bump up' option only if the post is 2 days old
+
+                                                    return menuItems;
+                                                  },
+                                                ),
+                                                title: Text.rich(
+                                                  TextSpan(
+                                                    children: [
+                                                      TextSpan(
+                                                          text: post.userName),
+                                                      TextSpan(
+                                                        text: '\t\t',
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                      TextSpan(
+                                                        text: post.flag,
+                                                        style: TextStyle(
+                                                            fontSize: 18),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                subtitle: Text(
+                                                  post.isApproved
+                                                      ? "Status: Approved"
+                                                      : (post.underApproval
+                                                          ? "Status: Under Approval"
+                                                          : "Status: Disapproved"),
+                                                  style: GoogleFonts.poppins(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                              fontSize: 12,
+                                                              color: Color(
+                                                                  0xff919191))),
+                                                ),
                                               ),
-                                            ),
-                                            SizedBox(
-                                              height: 10,
-                                            ),
-                                            const Divider(),
-                                          ],
+                                              GestureDetector(
+                                                onTap: () {
+                                                  Get.to(() => ShowCompletePost(
+                                                        imageUrl: post
+                                                            .profileImageUrl,
+                                                        title: post.userName,
+                                                        description:
+                                                            post.postContent,
+                                                        postImage:
+                                                            post.postMediaUrl,
+                                                        tag: post.tag,
+                                                        isEmailVerified:
+                                                            post.isEmailVerified ??
+                                                                false,
+                                                      ));
+                                                },
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 20,
+                                                          right: 20,
+                                                          top: 10),
+                                                  child: (post.postContent
+                                                              .length >
+                                                          70)
+                                                      ? Text(
+                                                          post.postContent
+                                                                  .substring(
+                                                                      0, 72) +
+                                                              "......",
+                                                          textAlign:
+                                                              TextAlign.left,
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                              fontSize: 12,
+                                                              color: Color(
+                                                                  0xff5A5A5A),
+                                                              height: 1.8,
+                                                            ),
+                                                          ),
+                                                        )
+                                                      : Text(
+                                                          post.postContent,
+                                                          textAlign:
+                                                              TextAlign.left,
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                              fontSize: 12,
+                                                              color: Color(
+                                                                  0xff5A5A5A),
+                                                              height: 1.8,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height: 10,
+                                              ),
+                                              const Divider(),
+                                            ],
+                                          ),
                                         );
                                       } else {
                                         return Container();

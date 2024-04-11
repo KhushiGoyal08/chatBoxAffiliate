@@ -242,7 +242,7 @@ class _Verify_OTPState extends State<Verify_OTP> with TickerProviderStateMixin {
                                 style: TextStyle(
                                     color: Color(0xff102E44),
                                     fontFamily: 'Montserrat',
-                                    fontSize: 15,
+                                    fontSize: 12,
                                     letterSpacing:
                                         0 /*percentages not used in flutter. defaulting to zero*/,
                                     fontWeight: FontWeight.normal,
